@@ -39,6 +39,14 @@ body {
     background-color: sandybrown;
 }
 .content {
+    display: -webkit-box || -webkit-inline-box;
+    display: -moz-box || -moz-inline-box;
+    display: -ms-flexbox || -ms-inline-flexbox;
+    display: -webkit-flex || -webkit-inline-flex;
+    display: inline-flex;
+    flex-direction: -webkit-row;
+    justify-content: -webkit-flex-start;
+    align-items: -webkit-flex-start;
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
@@ -67,6 +75,14 @@ h1 {
 
 /* ======= profile ======= */
 .profile {
+    display: -webkit-box || -webkit-inline-box;
+    display: -moz-box || -moz-inline-box;
+    display: -ms-flexbox || -ms-inline-flexbox;
+    display: -webkit-flex || -webkit-inline-flex;
+    display: inline-flex;
+    flex-direction: -webkit-column;
+    justify-content: -webkit-left;
+    align-items: -webkit-flex-start;
     display: flex;
     flex-direction: column;
     justify-content: left;
