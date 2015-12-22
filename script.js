@@ -48,7 +48,7 @@ $(document).ready(function() {
 
     // ======= ======= ======= onEachFeature ======= ======= =======
     function onEachFeature(feature, layer) {
-        console.log("onEachFeature");
+        // console.log("onEachFeature");
 
         // == add listeners on state layers
         layer.on({
@@ -82,6 +82,8 @@ $(document).ready(function() {
             url: "Public_Schools_dev.csv",
         }).done(function(textData){
             console.log("*** ajax success ***");
+
+            // == parse csv text to js object
             var jsonData = CSV2JSON(textData);
             console.dir(jsonData);
 
@@ -102,6 +104,7 @@ $(document).ready(function() {
     function getSchoolData(jsonData, whichDistrict) {
         console.log("getSchoolData");
 
+        // == find selected school via gis_id
         for (var i = 0; i < jsonData.length; i++) {
             nextItem = jsonData[i];
             nextGis_id = nextItem.gis_id;
@@ -115,6 +118,7 @@ $(document).ready(function() {
     function makeDataPanel(schoolData) {
         console.log("makeDataPanel");
 
+        // == make basic panel laels for school
         tableString = "<div><table>";
         tableString += "<tr><td class='label'>school</td>";
         tableString += "<td class='value'> " + schoolData.name;
@@ -131,6 +135,7 @@ $(document).ready(function() {
     function makeDataGraph(schoolData) {
         console.log("makeDataGraph");
 
+        // == create data object for d3 script
         schoolName = schoolData.name;
         population_2008 = schoolData.population_2008;
         population_enrolled = schoolData.population_enrolled;
@@ -141,13 +146,14 @@ $(document).ready(function() {
 
         schoolDataArray = [{"key": "2008", "value": population_2008}, {"key": "current", "value": population_enrolled}, {"key": "future", "value": population_planned}, {"key": "atRisk", "value": population_atRisk}, {"key": "specEd", "value": population_specEd}, {"key": "graduates", "value": population_grad}];
 
+        // == make d3 chart
         initHorizontalChart(schoolName, schoolDataArray);
 
     }
 
     // ======= ======= ======= highlightFeature ======= ======= =======
     function highlightFeature(e) {
-        console.log("highlightFeature");
+        // console.log("highlightFeature");
 
         // == define event listener for layer mouseover event
         var layer = e.target;
@@ -169,7 +175,7 @@ $(document).ready(function() {
 
     // ======= ======= ======= resetHighlight ======= ======= =======
     function resetHighlight(e) {
-        console.log("resetHighlight");
+        // console.log("resetHighlight");
 
         // == restore on mouseout (default state defined by style function)
         geoJsonLayer.resetStyle(e.target);
@@ -302,7 +308,7 @@ $(document).ready(function() {
     var info = L.control();
 
     info.onAdd = function (map) {
-        console.log("info.onAdd");
+        // console.log("info.onAdd");
         this._div = L.DomUtil.create('div', 'info');
         this.update();
         return this._div;
@@ -310,7 +316,7 @@ $(document).ready(function() {
 
     // update control based on feature properties passed
     info.update = function (props) {
-        console.log("info.update");
+        // console.log("info.update");
         this._div.innerHTML = '<h4>DC Highschool Zones</h4>' +  (props ?
             '<b>' + props.SCHOOLNAME + '</b><br />building #: ' + props.BLDG_NUM
             : 'Hover over a district');

@@ -4,28 +4,34 @@ function initHorizontalChart(schoolName, schoolDataArray) {
 
     // ======= chart formatting =======
     var chartPadding = {top: 5, right: 20, bottom: 80, left: 50},
-        width = 280 - chartPadding.left - chartPadding.right,       // outer width of chart
+        chartW = 280 - chartPadding.left - chartPadding.right,       // outer width of chart
         chartH = 260 - chartPadding.top - chartPadding.bottom;      // outer height of chart
+
     var dataH = d3.max(schoolDataArray, function(d) {
         return d.value;
     });
 
+    var dataMax = d3.max(schoolDataArray, function(d) {
+        // console.log("  d.value: " + d.value);
+        return d.value;
+    })
+
     // ======= scale mapping (data to display) =======
     var xScale = d3.scale.ordinal()
-        .rangeRoundBands([0, width], .1)
+        .rangeRoundBands([0, chartW], .1)
         .domain(schoolDataArray.map(function(d) {
             return d.key;;
         }));
 
     var yScale = d3.scale.linear()
         .domain([0, d3.max(schoolDataArray, function(d) {
-            return d.value;
+            return +d.value;
         })])
         .range([chartH, 0]);
 
     // ======= scale label formating =======
-    var xAxis = d3.svg.axis()   // existing x scale function is bound to xAxis
-        .scale(xScale)               // x scale becomes scale function of xAxis object
+    var xAxis = d3.svg.axis()
+        .scale(xScale)
         .orient("bottom");
 
     var yAxis = d3.svg.axis()
@@ -36,7 +42,7 @@ function initHorizontalChart(schoolName, schoolDataArray) {
     // ======= build svg objects =======
     $("#chartHorizontal").empty();
     var svg = d3.select("#chartHorizontal").append("svg")
-        .attr("width", width + (chartPadding.left + chartPadding.right))
+        .attr("width", chartW + (chartPadding.left + chartPadding.right))
         .attr("height", chartH + (chartPadding.top + chartPadding.bottom))
         .append("g")
             .attr("transform", "translate(" + chartPadding.left + "," + chartPadding.top + ")");
@@ -85,7 +91,7 @@ function initHorizontalChart(schoolName, schoolDataArray) {
     // ======= stringToInt =======
     function stringToInt(d) {
         // console.log("stringToInt");
-        d.frequency = +d.frequency;
+        d.value = +d.value;
         return d;
     }
 }
