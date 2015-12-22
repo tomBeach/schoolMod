@@ -24,19 +24,27 @@
 
 		<!-- ======= ======= ======= content ======= ======= ======= -->
 		<div class="row content">
-			<div class="column column-9 mapArea">
-
-				<div id="map"></div>
-
+			<!-- ======= filters ======= -->
+			<div class="column column-2 filters">
+				<h4 class="title">Filters</h4>
+				<div class="filterDivs">
+					<div id="wards">wards</div>
+					<div id="feeders">feeders</div>
+					<div id="publicSchools">public</div>
+					<div id="charterSchools">charter</div>
+				</div>
 			</div>
-			<div class="column column-3 profile">
-				<h4 class="info profileTitle">School Data</h4>
 
-				<!-- ======= profile ======= -->
+			<!-- ======= map ======= -->
+			<div class="column column-6 mapArea">
+				<div id="map"></div>
+			</div>
+
+			<!-- ======= profile ======= -->
+			<div class="column column-4 profile">
+				<h4 class="title">School Data</h4>
 				<div id="profileData"></div>
-
-				<!-- ======= d3 ======= -->
-				<div id="chartHorizontal"></div>
+				<div id="chartData"></div>
 
 			</div>
 		</div>

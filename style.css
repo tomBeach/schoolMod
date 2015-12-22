@@ -74,48 +74,12 @@ h5 {
 
 /* ======= map ======= */
 .mapArea {
-    width: 680px;
-    height: 400px;
+    width: 480px;
+    height: 480px;
 }
 #map {
     width: 100%;
     height: 100%;
-}
-
-/* ======= profile ======= */
-.profile {
-    display: -webkit-box || -webkit-inline-box;
-    display: -moz-box || -moz-inline-box;
-    display: -ms-flexbox || -ms-inline-flexbox;
-    display: -webkit-flex || -webkit-inline-flex;
-    display: inline-flex;
-    flex-direction: -webkit-column;
-    justify-content: -webkit-left;
-    align-items: -webkit-flex-start;
-    display: flex;
-    flex-direction: column;
-    justify-content: left;
-    align-items: flex-start;
-    margin-left: 10px;
-    width: 280px;
-}
-.label {
-    text-align: right;
-    font: 12px Arial, Helvetica, sans-serif;
-    font-weight: bold;
-    color: rebeccapurple;
-    width: 15%;
-}
-.value {
-    text-align: left;
-    font: 12px Arial, Helvetica, sans-serif;
-    color: black;
-    width: 85%;
-}
-#chartHorizontal {
-    margin-right: 5px;
-    padding: 10px 0 0 0;
-    border: 1px solid Tomato;
 }
 
 /* ======= info ======= */
@@ -124,13 +88,90 @@ h5 {
     font: 14px/16px Arial, Helvetica, sans-serif;
     background: white;
     background: rgba(255,255,255,0.8);
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    box-shadow: 0 0 15px rgba(0,0,0,0.8);
     border-radius: 5px;
 }
 .info h4 {
     margin: 0 0 5px;
     color: #777;
 }
+
+/* ======= filters ======= */
+.filters {
+    width: 100px;
+    height: 100%;
+}
+.filterDivs > div {
+    margin: 10px;
+    padding: 8px 0 0 0;
+    width: 80px;
+    height: 30px;
+}
+#wards {
+    background-color: red;
+}
+#feeders {
+    background-color: green;
+}
+#publicSchools {
+    background-color: blue;
+}
+#charterSchools {
+    background-color: purple;
+}
+
+/* ======= profile ======= */
+.profile, .filters {
+    display: -webkit-box || -webkit-inline-box;
+    display: -moz-box || -moz-inline-box;
+    display: -ms-flexbox || -ms-inline-flexbox;
+    display: -webkit-flex || -webkit-inline-flex;
+    display: inline-flex;
+    flex-direction: -webkit-column;
+    justify-content: -webkit-flex-start;
+    align-items: -webkit-center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+.filters {
+    margin-left: 5px;
+    width: 100px;
+}
+.profile {
+    margin-left: 10px;
+    width: 320px;
+}
+.title {
+    width: 50%;
+    padding-left: 10px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: blue;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+}
+.label {
+    text-align: right;
+    font: 12px Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    color: rebeccapurple;
+    width: 20%;
+}
+.value {
+    text-align: left;
+    font: 12px Arial, Helvetica, sans-serif;
+    color: black;
+    width: 80%;
+}
+#chartData {
+    width: 90%;
+    padding: 10px 0 0 0;
+    border: 1px solid Tomato;
+}
+
+/* ======= legend ======= */
 .legend {
     line-height: 18px;
     color: #555;
@@ -141,9 +182,6 @@ h5 {
     float: left;
     margin-right: 8px;
     opacity: 0.7;
-}
-.profileTitle {
-    width: 90%;
 }
 
 

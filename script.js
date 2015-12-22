@@ -5,6 +5,17 @@ $(document).ready(function() {
     var map = L.map('map').setView(new L.LatLng(38.89, -77.00), 11);
     var geoJsonLayer;
 
+    // ======= apis =======
+    var elem_zones_url = "http://opendata.dc.gov/datasets/3e3c048a3fb348cf934d5b00d1dfcee9_6.geojson";
+    var ms_zones_url = "http://opendata.dc.gov/datasets/91d7eb9416964c1fb3dc94ceeae6b760_7.geojson";
+    var hs_zones_url = "http://opendata.dc.gov/datasets/3f5263d0534a42bd84d245102c8578a9_8.geojson";
+    var indy_zones_url = "http://opendata.dc.gov/datasets/8986ebe04f554892aa76b95b284c4942_3.geojson";
+    var school_grounds_url = "http://opendata.dc.gov/datasets/5a0b79e379ac43a88807598b24cbcf8f_10.geojson";
+    var public_schools_url = "http://opendata.dc.gov/datasets/4ac321b2d409438ebd76a6569ad94034_5.geojson";
+    var charter_schools_url = "http://opendata.dc.gov/datasets/a3832935b1d644e48c887e6ec5a65fcd_1.geojson";
+    var census_blocks_url = "http://opendata.dc.gov/datasets/a6f76663621548e1a039798784b64f10_0.geojson";
+    var census_tracts_url = "http://opendata.dc.gov/datasets/6969dd63c5cb4d6aa32f15effb8311f3_8.geojson";
+
 
     // ======= tile layer =======
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {

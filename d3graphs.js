@@ -40,8 +40,8 @@ function initHorizontalChart(schoolName, schoolDataArray) {
         .ticks(5);
 
     // ======= build svg objects =======
-    $("#chartHorizontal").empty();
-    var svg = d3.select("#chartHorizontal").append("svg")
+    $("#chartData").empty();
+    var svg = d3.select("#chartData").append("svg")
         .attr("width", chartW + (chartPadding.left + chartPadding.right))
         .attr("height", chartH + (chartPadding.top + chartPadding.bottom))
         .append("g")
