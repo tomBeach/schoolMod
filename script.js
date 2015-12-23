@@ -1,338 +1,164 @@
 $(document).ready(function() {
     console.log('initObjects');
 
-    // ======= map object =======
-    var map = L.map('map').setView(new L.LatLng(38.89, -77.00), 11);
-    var geoJsonLayer;
+    var map;
 
-    // ======= apis =======
-    var elem_zones_url = "http://opendata.dc.gov/datasets/3e3c048a3fb348cf934d5b00d1dfcee9_6.geojson";
-    var ms_zones_url = "http://opendata.dc.gov/datasets/91d7eb9416964c1fb3dc94ceeae6b760_7.geojson";
-    var hs_zones_url = "http://opendata.dc.gov/datasets/3f5263d0534a42bd84d245102c8578a9_8.geojson";
-    var indy_zones_url = "http://opendata.dc.gov/datasets/8986ebe04f554892aa76b95b284c4942_3.geojson";
-    var school_grounds_url = "http://opendata.dc.gov/datasets/5a0b79e379ac43a88807598b24cbcf8f_10.geojson";
-    var public_schools_url = "http://opendata.dc.gov/datasets/4ac321b2d409438ebd76a6569ad94034_5.geojson";
-    var charter_schools_url = "http://opendata.dc.gov/datasets/a3832935b1d644e48c887e6ec5a65fcd_1.geojson";
-    var census_blocks_url = "http://opendata.dc.gov/datasets/a6f76663621548e1a039798784b64f10_0.geojson";
-    var census_tracts_url = "http://opendata.dc.gov/datasets/6969dd63c5cb4d6aa32f15effb8311f3_8.geojson";
+    // ======= ======= ======= initMap ======= ======= =======
+    function initMap() {
+        console.log('initMap');
 
+        // ======= map styles =======
+        var styleArray = [
+            { featureType: "all",
+                stylers: [
+                    { saturation: -80 }
+                ]
+            },
+            { featureType: "road.arterial",
+                elementType: "geometry",
+                stylers: [
+                    { hue: "#00ffee" },
+                    { saturation: 50 }
+                ]
+            },
+            { featureType: "poi.business",
+                elementType: "labels",
+                stylers: [
+                    { visibility: "off" }
+                ]
+            }
+        ];
 
-    // ======= tile layer =======
-    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
-
-    // ======= get map geojson data =======
-    // == flat file source
-    $.ajax({
-        dataType: "json",
-        url: "hs_district_geo.geojson",
-    }).done(function(jsonData){
-        console.log("*** ajax success ***");
-        console.dir(jsonData);
-
-        // == styles/behaviors for map
-        L.geoJson(jsonData).addTo(map);
-        geoJsonLayer = L.geoJson(jsonData, {
-            style: style,
-            onEachFeature: onEachFeature
-        }).addTo(map);
-
-        // == add id to active areas
-        geoJsonLayer.eachLayer(function (layer) {
-            console.log("addId");
-            layer._leaflet_id = layer.feature.properties.GIS_ID;
+        // ======= map object =======
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: 38.89, lng: -77.00},
+            // center: {lat: -28, lng: 137},
+            scrollwheel: false,
+            styles: styleArray,
+            zoom: 11
+            // zoom: 4
         });
 
-    // == errors/fails
-    }).fail(function(){
-        console.log("*** ajax fail ***");
-    }).error(function() {
-        console.log("*** ajax error ***");
-    });
+        // ======= event listeners =======
+        map.data.addListener('mouseover', function(event) {
+            // console.log("mouseover");
+            map.data.revertStyle();
+            map.data.overrideStyle(event.feature, {strokeWeight: 4});
+        });
 
-
-    // ======= ======= ======= BEHAVIORS ======= ======= =======
-    // ======= ======= ======= BEHAVIORS ======= ======= =======
-    // ======= ======= ======= BEHAVIORS ======= ======= =======
-
-
-    // ======= ======= ======= onEachFeature ======= ======= =======
-    function onEachFeature(feature, layer) {
-        // console.log("onEachFeature");
-
-        // == add listeners on state layers
-        layer.on({
-            mouseover: highlightFeature,
-            mouseout: resetHighlight,
-            click: zoomToFeature
+        map.data.addListener('mouseout', function(event) {
+            // console.log("mouseout");
+            map.data.revertStyle();
         });
     }
 
-    // ======= ======= ======= zoomToFeature ======= ======= =======
-    function zoomToFeature(e) {
-        console.log("zoomToFeature");
+    // ======= ======= ======= activateFilterDivs ======= ======= =======
+    function activateFilterDivs() {
+        console.log('activateFilterDivs');
 
-        var whichDistrict, featureData, tableString;
+        var filterDivs = $(".filterDivs");
+        for (i = 0; i < $(filterDivs).children().length; i++) {
+            nextDiv = $(filterDivs).children()[i];
+            console.log("  $(nextDiv).attr('id'): " + $(nextDiv).attr('id'));
 
-        // == zoom to the district
-        whichDistrict = e.target._leaflet_id;
-        map.fitBounds(e.target.getBounds());
+            $(nextDiv).on('click', function() {
+                console.log("click");
+                console.log("  this.id: " + this.id);
 
-        // == get selected school data to create data panel
-        getAllSchoolData(whichDistrict);
+                getZoneData(this.id);
+            });
+        }
+
     }
 
-    // ======= ======= ======= getAllSchoolData ======= ======= =======
-    function getAllSchoolData(whichDistrict) {
-        console.log("getAllSchoolData");
+    // ======= ======= ======= getZoneData ======= ======= =======
+    function getZoneData(zoneType) {
+        console.log("getZoneData");
+        console.log("  map: " + map);
+        console.log("  zoneType: " + zoneType);
 
-        // == get school profile data from file
+        var fillColors = ["green", "red", "orange", "purple", "blue", "yellow", "tomato", "salmon"];
+        var url;
+
+        switch(zoneType) {
+            case "wards":
+                color = fillColors[0];
+                url = "GeoData/Ward__2012.geojson";
+                break;
+            case "feeders":
+                color = fillColors[1];
+                url = "GeoData/School_Attendance_Zones_Senior_High.geojson";
+                break;
+            case "public":
+                color = fillColors[2];
+                url = "GeoData/Public_Schools.geojson";
+                break;
+            case "charter":
+                color = fillColors[7];
+                url = "GeoData/Ward__2012.geojson";
+                break;
+        }
+
+        // ======= get map geojson data =======
         $.ajax({
-            dataType: "text",
-            url: "Public_Schools_dev.csv",
-        }).done(function(textData){
+            dataType: "json",
+            url: url
+            // url: "GeoData/googleGeojson.geojson",
+        }).done(function(geoJsonData){
             console.log("*** ajax success ***");
+            console.dir(geoJsonData);
 
-            // == parse csv text to js object
-            var jsonData = CSV2JSON(textData);
-            console.dir(jsonData);
+            // == add geojson layer
+            map.data.forEach(function(feature) {
+                map.data.remove(feature);
+            });
+            map.data.addGeoJson(geoJsonData);
 
-            // == get data for selected school
-            schoolData = getSchoolData(jsonData, whichDistrict)
-            makeDataPanel(schoolData);
-            makeDataGraph(schoolData);
+            map.data.setStyle(function(feature) {
+                var ward = feature.getProperty('NAME');
 
-            // == errors/fails
-            }).fail(function(){
-                console.log("*** ajax fail ***");
-            }).error(function() {
-                console.log("*** ajax error ***");
-        });
-    }
+                switch(ward) {
+                    case "Ward 1":
+                        color = fillColors[0];
+                        break;
+                    case "Ward 2":
+                        color = fillColors[1];
+                        break;
+                    case "Ward 3":
+                        color = fillColors[2];
+                        break;
+                    case "Ward 4":
+                        color = fillColors[3];
+                        break;
+                    case "Ward 5":
+                        color = fillColors[4];
+                        break;
+                    case "Ward 6":
+                        color = fillColors[5];
+                        break;
+                    case "Ward 7":
+                        color = fillColors[6];
+                        break;
+                    case "Ward 8":
+                        color = fillColors[7];
+                        break;
+                }
+                return {
+                  fillColor: color,
+                  strokeWeight: 1
+                };
+            });
 
-    // ======= ======= ======= getSchoolData ======= ======= =======
-    function getSchoolData(jsonData, whichDistrict) {
-        console.log("getSchoolData");
-
-        // == find selected school via gis_id
-        for (var i = 0; i < jsonData.length; i++) {
-            nextItem = jsonData[i];
-            nextGis_id = nextItem.gis_id;
-            if (nextGis_id == whichDistrict) {
-                return nextItem;
-            }
-        }
-    }
-
-    // ======= ======= ======= makeDataPanel ======= ======= =======
-    function makeDataPanel(schoolData) {
-        console.log("makeDataPanel");
-
-        // == make basic panel laels for school
-        tableString = "<div><table>";
-        tableString += "<tr><td class='label'>school</td>";
-        tableString += "<td class='value'> " + schoolData.name;
-        tableString += "</td></tr>";
-        tableString += "<tr><td class='label'>address</td>";
-        tableString += "<td class='value'> " + schoolData.address + " " + schoolData.zip_code;
-        tableString += "</td></tr>";
-        tableString += "</table></div>";
-        $("#profileData").children().remove();
-        $("#profileData").append(tableString);
-    }
-
-    // ======= ======= ======= makeDataGraph ======= ======= =======
-    function makeDataGraph(schoolData) {
-        console.log("makeDataGraph");
-
-        // == create data object for d3 script
-        schoolName = schoolData.name;
-        population_2008 = schoolData.population_2008;
-        population_enrolled = schoolData.population_enrolled;
-        population_planned = schoolData.population_planned;
-        population_atRisk = schoolData.population_atRisk;
-        population_specEd = schoolData.population_specEd;
-        population_grad = schoolData.population_grad;
-
-        schoolDataArray = [{"key": "2008", "value": population_2008}, {"key": "current", "value": population_enrolled}, {"key": "future", "value": population_planned}, {"key": "atRisk", "value": population_atRisk}, {"key": "specEd", "value": population_specEd}, {"key": "graduates", "value": population_grad}];
-
-        // == make d3 chart
-        initHorizontalChart(schoolName, schoolDataArray);
-
-    }
-
-    // ======= ======= ======= highlightFeature ======= ======= =======
-    function highlightFeature(e) {
-        // console.log("highlightFeature");
-
-        // == define event listener for layer mouseover event
-        var layer = e.target;
-        layer.setStyle({
-            weight: 5,
-            color: 'red',
-            dashArray: '',
-            fillOpacity: 0.8
+        // == errors/fails
+        }).fail(function(){
+            console.log("*** ajax fail ***");
+        }).error(function() {
+            console.log("*** ajax error ***");
         });
 
-        // == IE and Opera have difficulty with bringToFront method
-        if (!L.Browser.ie && !L.Browser.opera) {
-            layer.bringToFront();
-        }
-
-        // == update info control]
-        info.update(layer.feature.properties);
     }
 
-    // ======= ======= ======= resetHighlight ======= ======= =======
-    function resetHighlight(e) {
-        // console.log("resetHighlight");
-
-        // == restore on mouseout (default state defined by style function)
-        geoJsonLayer.resetStyle(e.target);
-
-        // == update info control]
-        info.update();
-    }
-
-
-
-    // ======= ======= ======= STYLES ======= ======= =======
-    // ======= ======= ======= STYLES ======= ======= =======
-    // ======= ======= ======= STYLES ======= ======= =======
-
-
-
-    // ======= ======= ======= getColor ======= ======= =======
-    function getColor(schoolname) {
-        // console.log("getColor");
-
-        // == returns a color based on population density
-        switch (schoolname) {
-            case 'Anacostia': return "#800026";
-            case 'Coolidge': return "orange";      // #BD0026
-            case 'Eastern': return "#E31A1C";
-            case 'Roosevelt': return "green";      // #FC4E2A
-            case 'Spingarn': return "#FD8D3C";
-            case 'Woodson, H.D.': return "chartreuse";    // #FEB24C
-            case 'Wilson, W.': return "cornflowerblue ";    // "#FEB24C"
-            case 'Ballou': return "blue";          // #FFEDA0
-            case 'Cardozo': return "#ff0000";
-            case 'Dunbar': return "purple";       // #0000ff
-        }
-    }
-
-    // ======= ======= ======= style ======= ======= =======
-    function style(feature) {
-        // console.log("style");
-
-        // == fillColor for school zones
-        return {
-            fillColor: getColor(feature.properties.SCHOOLNAME),
-            weight: 1,
-            opacity: 1,
-            color: 'white',
-            dashArray: '',
-            fillOpacity: 0.5
-        };
-    }
-
-
-    // ======= ======= ======= UTILITIES ======= ======= =======
-    // ======= ======= ======= UTILITIES ======= ======= =======
-    // ======= ======= ======= UTILITIES ======= ======= =======
-
-
-
-    // ======= ======= ======= CSVToArray ======= ======= =======
-    function CSVToArray(strData, strDelimiter) {
-        console.log("CSVToArray");
-        // Check to see if the delimiter is defined. If not, then default to comma.
-        strDelimiter = (strDelimiter || ",");
-        // Create a regular expression to parse the CSV values.
-        var objPattern = new RegExp((
-            // Delimiters.
-            "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
-            // Quoted fields.
-            "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
-            // Standard fields.
-            "([^\"\\" + strDelimiter + "\\r\\n]*))"), "gi");
-        // Create an array to hold our data with default empty first row.
-        var arrData = [[]];
-        // Create an array to hold our individual pattern matching groups.
-        var arrMatches = null;
-        // Loop over regular expression matches until we can no longer find a match.
-        while (arrMatches = objPattern.exec(strData)) {
-            // Get the delimiter that was found.
-            var strMatchedDelimiter = arrMatches[1];
-            // Check to see if the given delimiter has a length
-            // (is not the start of string) and if it matches
-            // field delimiter. If id does not, then we know
-            // that this delimiter is a row delimiter.
-            if (strMatchedDelimiter.length && (strMatchedDelimiter != strDelimiter)) {
-                // Since new row of data, add empty row to data array.
-                arrData.push([]);
-            }
-            // Check kind of value captured (quoted or unquoted).
-            if (arrMatches[2]) {
-                // Quoted value: unescape any double quotes.
-                var strMatchedValue = arrMatches[2].replace(
-                new RegExp("\"\"", "g"), "\"");
-            } else {
-                // Non-quoted value.
-                var strMatchedValue = arrMatches[3];
-            }
-            // Add value string to the data array.
-            // console.log("  strMatchedValue: " + strMatchedValue);
-            arrData[arrData.length - 1].push(strMatchedValue);
-        }
-        // Return the parsed data.
-        return (arrData);
-    }
-
-    // ======= ======= ======= CSV2JSON ======= ======= =======
-    function CSV2JSON(csv) {
-        console.log("CSV2JSON");
-        var array = CSVToArray(csv);
-        var objArray = [];
-        for (var i = 1; i < array.length; i++) {
-            objArray[i - 1] = {};
-            for (var k = 0; k < array[0].length && k < array[i].length; k++) {
-                var key = array[0][k];
-                objArray[i - 1][key] = array[i][k]
-            }
-        }
-
-        var json = JSON.stringify(objArray);
-        var json2 = JSON.parse(json)
-        return json2;
-    }
-
-
-
-    // ======= ======= ======= CONTROLS ======= ======= =======
-    // ======= ======= ======= CONTROLS ======= ======= =======
-    // ======= ======= ======= CONTROLS ======= ======= =======
-
-
-
-    var info = L.control();
-
-    info.onAdd = function (map) {
-        // console.log("info.onAdd");
-        this._div = L.DomUtil.create('div', 'info');
-        this.update();
-        return this._div;
-    };
-
-    // update control based on feature properties passed
-    info.update = function (props) {
-        // console.log("info.update");
-        this._div.innerHTML = '<h4>DC Highschool Zones</h4>' +  (props ?
-            '<b>' + props.SCHOOLNAME + '</b><br />building #: ' + props.BLDG_NUM
-            : 'Hover over a district');
-    };
-
-    info.addTo(map);
+    initMap();
+    activateFilterDivs();
 
 })
