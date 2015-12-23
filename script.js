@@ -95,7 +95,7 @@ $(document).ready(function() {
                 break;
             case "charter":
                 color = fillColors[7];
-                url = "GeoData/Ward__2012.geojson";
+                url = "GeoData/Charter_Schools.geojson";
                 break;
         }
 
@@ -103,46 +103,23 @@ $(document).ready(function() {
         $.ajax({
             dataType: "json",
             url: url
-            // url: "GeoData/googleGeojson.geojson",
         }).done(function(geoJsonData){
             console.log("*** ajax success ***");
             console.dir(geoJsonData);
 
-            // == add geojson layer
+            // == clear previous geojson layer
             map.data.forEach(function(feature) {
                 map.data.remove(feature);
             });
+
+            // == add geojson layer
             map.data.addGeoJson(geoJsonData);
 
+            // == colorize features
+            var featureIndex = -1;
             map.data.setStyle(function(feature) {
-                var ward = feature.getProperty('NAME');
-
-                switch(ward) {
-                    case "Ward 1":
-                        color = fillColors[0];
-                        break;
-                    case "Ward 2":
-                        color = fillColors[1];
-                        break;
-                    case "Ward 3":
-                        color = fillColors[2];
-                        break;
-                    case "Ward 4":
-                        color = fillColors[3];
-                        break;
-                    case "Ward 5":
-                        color = fillColors[4];
-                        break;
-                    case "Ward 6":
-                        color = fillColors[5];
-                        break;
-                    case "Ward 7":
-                        color = fillColors[6];
-                        break;
-                    case "Ward 8":
-                        color = fillColors[7];
-                        break;
-                }
+                featureIndex++;
+                color = fillColors[featureIndex];
                 return {
                   fillColor: color,
                   strokeWeight: 1
@@ -155,7 +132,6 @@ $(document).ready(function() {
         }).error(function() {
             console.log("*** ajax error ***");
         });
-
     }
 
     initMap();
