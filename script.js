@@ -966,7 +966,7 @@ function initApp() {
         console.log("  href: ", href);
         console.log("  pathname: ", pathname);
 
-        if ((pathname == "/") || (pathname == "/index.html")) {
+        if ((pathname == "/") || (pathname == "/index.html") || (pathname == "/schoolmod/")) {
 
             // var mapBounds = new GLatLngBounds();
             // var NE_M = new google.maps.LatLng(38.79640926765663, -77.14762878417969);
