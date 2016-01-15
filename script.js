@@ -987,12 +987,6 @@ function initApp() {
             // map.setCenter(mapBounds.getCenter());
             // map.getBoundsZoomLevel(mapBounds);
 
-            google.maps.event.addListener(map, 'bounds_changed', function() {
-                if (!barChartObject.mapBounds) {
-                    barChartObject.mapBounds = map.getBounds();
-                }
-            });
-
         } else {
 
             map = new google.maps.Map(document.getElementById('map2'), {
@@ -1005,6 +999,14 @@ function initApp() {
                 zoom: 10
             });
         }
+        google.maps.event.addListener(map, 'tilesloaded', function() {
+            console.log("tilesloaded.addListener");
+            if (!barChartObject.mapBounds) {
+                barChartObject.mapBounds = map.getBounds();
+            }
+        });
+
+        console.log("  map.center: ", map.center);
     }
 
     // ======= ======= ======= saveMapState ======= ======= =======
