@@ -1052,7 +1052,7 @@ function initApp() {
 
 
 
-    // initMap();
+    initMap();
     initMenuObjects();
     initChartObjects();
     initDisplayObjects();
