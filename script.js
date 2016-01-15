@@ -976,10 +976,6 @@ function initApp() {
 
         if ((pathname == "/") || (pathname == "/index.html") || (pathname == "/schoolmod/")) {
 
-            // var mapBounds = new GLatLngBounds();
-            // var NE_M = new google.maps.LatLng(38.79640926765663, -77.14762878417969);
-            // var SW_M = new google.maps.LatLng(38.98346758223197, -76.85237121582031);
-
             map = new google.maps.Map(document.getElementById('map'), {
                 center: {lat: 38.89, lng: -77.00},
                 disableDefaultUI: true,
@@ -989,11 +985,6 @@ function initApp() {
                 mapTypeId: google.maps.MapTypeId.TERRAIN,
                 zoom: 12
             });
-
-            // mapBounds.extend(NE_M);
-            // mapBounds.extend(SW_M);
-            // map.setCenter(mapBounds.getCenter());
-            // map.getBoundsZoomLevel(mapBounds);
 
         } else {
 
@@ -1013,8 +1004,6 @@ function initApp() {
                 barChartObject.mapBounds = map.getBounds();
             }
         });
-
-        console.log("  map.center: ", map.center);
     }
 
     // ======= ======= ======= makeTooltip ======= ======= =======
@@ -1063,7 +1052,7 @@ function initApp() {
 
 
 
-    initMap();
+    // initMap();
     initMenuObjects();
     initChartObjects();
     initDisplayObjects();
