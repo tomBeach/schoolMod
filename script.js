@@ -576,18 +576,18 @@ function initApp() {
             nextLng = nextSchoolData.schoolLng;
             var schoolLoc = new google.maps.LatLng(nextLat, nextLng);
 
-            // var school = new google.maps.Circle({
-            //     // position: schoolLoc,
-            //     map: map,
-            //     title: nextSchool,
-            //     center: schoolLoc,
-            //     radius: 200,
-            //     strokeColor: "#0000FF",
-            //     strokeOpacity: 0.8,
-            //     strokeWeight: 1,
-            //     fillColor: "#ffffff",
-            //     fillOpacity: 1
-            // });
+            var school = new google.maps.Circle({
+                // position: schoolLoc,
+                map: map,
+                title: nextSchool,
+                center: schoolLoc,
+                radius: 200,
+                strokeColor: "#0000FF",
+                strokeOpacity: 0.8,
+                strokeWeight: 1,
+                fillColor: "#ffffff",
+                fillOpacity: 1
+            });
 
             var marker = new google.maps.Marker({
                 position: schoolLoc,
@@ -602,7 +602,9 @@ function initApp() {
             overlay.onAdd = function() {
                var projection = this.getProjection();
                var pixel = projection.fromLatLngToContainerPixel(marker.getPosition());
-               console.log("  pixel: ", pixel);
+               locX = parseInt(pixel.x - 10);
+               locY = parseInt(pixel.y + 10);
+               makeTooltip(nextSchool, locX, locY);
              };
 
             schoolMarkersArray.push(marker);
@@ -974,7 +976,7 @@ function initApp() {
         console.log("  href: ", href);
         console.log("  pathname: ", pathname);
 
-        if ((pathname == "/") || (pathname == "/index.html") || (pathname == "/schoolmod/")) {
+        if ((pathname == "/") || (pathname == "/index.html") || (pathname == "/schoolMod/")) {
 
             map = new google.maps.Map(document.getElementById('map'), {
                 center: {lat: 38.89, lng: -77.00},
