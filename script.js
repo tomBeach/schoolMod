@@ -595,6 +595,16 @@ function initApp() {
                 title: nextSchool
             });
 
+            var overlay = new google.maps.OverlayView();
+            overlay.draw = function() {};
+            overlay.setMap(map);
+
+            overlay.onAdd = function() {
+               var projection = this.getProjection();
+               var pixel = projection.fromLatLngToContainerPixel(marker.getPosition());
+               console.log("  pixel: ", pixel);
+             };
+
             schoolMarkersArray.push(marker);
         }
         this.schoolMarkersArray = schoolMarkersArray;
@@ -681,8 +691,19 @@ function initApp() {
             var featureIndex = -1;
             map.data.forEach(function(feature) {
                 featureIndex++;
-                var ward = feature.getProperty('WARD');
-                var feeder = feature.getProperty('SCHOOLNAME');
+
+                switch(zoneType) {
+                    case "Ward":
+                    var itemName = feature.getProperty('NAME');
+                        break;
+                    case "Feeder":
+                    var itemName = feature.getProperty('SCHOOLNAME');
+                        break;
+                    case "Quadrant":
+                    var itemName = feature.getProperty('NAME');
+                        break;
+                }
+
                 var type = feature.getGeometry().getType()
                 var bounds;
 
@@ -704,9 +725,10 @@ function initApp() {
                 centerLatLng = new google.maps.LatLng({lat: centerLat, lng: centerLng});
 
                 // == set feature properties
-                feature.setProperty('bounds', bounds);
                 feature.setProperty('index', featureIndex);
                 feature.setProperty('center', centerLatLng);
+                feature.setProperty('bounds', bounds);
+                feature.setProperty('itemName', itemName);
 
                 // centerLat = bounds.getCenter().lat();
                 // centerLng = bounds.getCenter().lng();
@@ -757,6 +779,20 @@ function initApp() {
         map.data.addListener('mouseover', function(event) {
             // console.log("--- mouseover ---");
             showHoverEffects(event, zoneType, this);
+            var itemName = event.feature.getProperty('itemName');
+            var itemCenter = event.feature.getProperty('center');
+
+            var overlay = new google.maps.OverlayView();
+            overlay.draw = function() {};
+            overlay.setMap(map);
+            overlay.onAdd = function() {
+                var projection = this.getProjection();
+                var pixel = projection.fromLatLngToContainerPixel(itemCenter);
+                locX = parseInt(pixel.x - 30);
+                locY = parseInt(pixel.y + 100);
+                makeTooltip(itemName, locX, locY);
+            };
+
         });
 
         // ======= click event listeners =======
@@ -804,12 +840,11 @@ function initApp() {
         map.data.addListener('mouseout', function(event) {
             // console.log("--- mouseout ---");
             featureIndex = event.feature.getProperty('index');
-            // InfoWindow = event.feature.getProperty('InfoWindow');
             map.data.overrideStyle(event.feature, {
                 fillColor: fillColors[featureIndex],
                 strokeWeight: 1
             });
-            // InfoWindow.close();
+            makeTooltip(null);
         });
 
         // ======= ======= ======= showHoverEffects ======= ======= =======
@@ -829,33 +864,6 @@ function initApp() {
                 fillColor: "gray",
                 strokeWeight: 4
             });
-
-            // infoBubble = new InfoBubble({
-            //       map: map,
-            //       content: "<div class='mylabel'>" + infoText + "</div>",
-            //       position: center,
-            //       shadowStyle: 1,
-            //       padding: 0,
-            //       backgroundColor: 'rgb(57,57,57)',
-            //       borderRadius: 5,
-            //       arrowSize: 10,
-            //       borderWidth: 1,
-            //       borderColor: '#2c2c2c',
-            //       hideCloseButton: true,
-            //       arrowPosition: 30,
-            //       backgroundClassName: 'transparent',
-            //       arrowStyle: 2
-            // });
-            // event.feature.setProperty('infoBubble', infoBubble);
-            // infoBubble.open(map, zoneElement);
-
-            // var InfoWindow = new google.maps.InfoWindow({
-            //     content: infoText,
-            //     map: map,
-            //     position: center
-            // });
-            //
-            // event.feature.setProperty('InfoWindow', InfoWindow);
         }
 
         // ======= ======= ======= zoomToZone ======= ======= =======
@@ -1008,6 +1016,20 @@ function initApp() {
 
         console.log("  map.center: ", map.center);
     }
+
+    // ======= ======= ======= makeTooltip ======= ======= =======
+    function makeTooltip(tooltipText, locX, locY) {
+        console.log('makeTooltip');
+        if (tooltipText) {
+            tooltipString = "<p>" + tooltipText + "</p>";
+            $("#tooltips").html(tooltipString);
+            $("#tooltips").css("left", locX);
+            $("#tooltips").css("top", locY);
+        } else {
+            $("#tooltips").html("");
+        }
+    }
+
 
     // ======= ======= ======= saveMapState ======= ======= =======
     function saveMapState(map) {

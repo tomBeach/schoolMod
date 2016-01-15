@@ -46,6 +46,22 @@ hr {
     border: 1px solid rgba(86,61,124,.2);*/
 }
 
+/* ======= tooltips ======= */
+#tooltips {
+    position: absolute;
+    height: 24px;
+    background-color: rgba(255, 255, 255, 1);
+    box-shadow: 2px 2px 2px #222;
+    border-radius:2px;
+    z-index: 999;
+}
+#tooltips p {
+    margin: 8px 20px 4px 20px;
+    line-height: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
 /* ======= mapCol ======= */
 .mapCol {
     display: -webkit-flex || -webkit-inline-flex;
