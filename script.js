@@ -1087,7 +1087,7 @@ function initApp() {
         console.log("  pathname: ", pathname);
 
         // ======= index map =======
-        if ((pathname == "/") || (pathname == "/index.html") || (pathname == "/schoolMod/")) {
+        if ((pathname == "/") || (pathname == "/index.html") || (pathname == "/schoolMod/" || (pathname == "/schoolMod/index.html"))) {
 
             map = new google.maps.Map(document.getElementById('map'), {
                 center: {lat: 38.89, lng: -77.00},
