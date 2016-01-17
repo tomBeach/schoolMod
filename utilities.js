@@ -1,5 +1,17 @@
 
 
+// ======= ======= ======= CSV FILES ======= ======= =======
+// ======= ======= ======= CSV FILES ======= ======= =======
+// ======= ======= ======= CSV FILES ======= ======= =======
+
+
+// ======= ======= ======= DCPS_Master_114 ======= ======= =======
+// Agency, School, SCHOOLCODE, Address, maxOccupancy, Enroll.Cap, ProjectPhase, YrComplete, Level, totalSQFT, ProjectType, MajorExp9815, TotalAllotandPlan1621, LifetimeBudget, LON, LAT, WARD, FeederMS, FeederHS, Total.Enrolled, Limited.English.Proficient, At_Risk, AtRiskPer, SPEDPer, ESLPer, SqFtPerEnroll, SpentPerEnroll, SpentPerSqFt
+
+// ======= ======= ======= DCPS_Master_114_dev ======= ======= =======
+// Agency, School, SCHOOLCODE, Address, Level, WARD, FeederMS, FeederHS, LON, LAT, totalSQFT, maxOccupancy, Enroll_Cap, Total_Enrolled, Limited_English, At_Risk, ProjectPhase, YrComplete, ProjectType, MajorExp9815, TotalAllotandPlan1621, LifetimeBudget ... AtRiskPer, SPEDPer, ESLPer, SqFtPerEnroll, SpentPerEnroll, SpentPerSqFt
+
+
 // ======= ======= ======= popup window ======= ======= =======
 (function(){
 

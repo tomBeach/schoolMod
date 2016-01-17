@@ -80,16 +80,14 @@ hr {
 
 /* ======= map ======= */
 #map {
-    /*margin-top: 5px;
-    margin-left: 100px;*/
     width: 100%;
     height: 700px;
 }
-/*#map2 {
-    margin-top: 20px;
-    width: 500px;
-    height: 500px;
-}*/
+#map2 {
+    float: left;
+    width: 300px;
+    height: 300px;
+}
 
 /* ======= labels ======= */
 h3 {
@@ -120,18 +118,26 @@ h3 {
     left:65%;
     z-index:9999;
     box-shadow: 6px 6px 5px #888888;
-    border-radius:2px;
+    border-radius: 6px 6px 2px 2px;
     /*border:1px solid #ddd;*/
 }
 #popup_bar {
-    width:100%;
-    background-color:#eee;
-    position:relative;
-    top:0;
+    width: 100%;
+    position: relative;
+    /*top: 0;*/
+    height: 24px;
+    margin 0;
+    padding: 1px 0 16px 0;
+    text-align: center;
+    background-color: firebrick;
     border-radius: 6px 6px 0 0;
-    text-align:center;
-    height:24px;
     cursor:move;
+}
+#popup_bar > p {
+    margin-top: 8px;
+    font-weight: 700;
+	font-size: 16px;
+    color: white;
 }
 
 
