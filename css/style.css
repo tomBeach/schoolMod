@@ -220,6 +220,27 @@ h3 {
 #main-nav ul li.agency-set {
 	background: #d279d2;
 }
+#main-nav ul li.students-set {
+	background: #ff5050;
+}
+#main-nav ul li.expenditures-set {
+	background: #33cc33;
+}
+#main-nav ul li #geography > a {
+	color: #9999ff;
+}
+#main-nav ul li #levels > a {
+	color: #99c2ff;
+}
+#main-nav ul li #agency > a {
+	color: #d279d2;
+}
+#main-nav ul li #students > a {
+	color: #ff5050;
+}
+#main-nav ul li #expenditures > a {
+	color: #33cc33;
+}
 #main-nav ul li.filter:hover {
 	background:#ffb366;
 }
