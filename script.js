@@ -12,7 +12,7 @@ function initApp() {
     // ======= ======= ======= ======= ======= initialize ======= ======= ======= ======= =======
     // ======= ======= ======= ======= ======= initialize ======= ======= ======= ======= =======
 
-    var barChartObject;
+    var mapDataObject;
     var displayObject;
     var filterMenu, map;
     var fillColors = ["green", "red", "orange", "purple", "salmon", "blue", "yellow", "tomato", "darkkhaki", "goldenrod"];
@@ -80,7 +80,7 @@ function initApp() {
     function initChartObjects() {
         console.log("initChartObjects");
 
-        barChartObject = new Chart("barChart");
+        mapDataObject = new Chart("barChart");
     }
 
     // ======= ======= ======= ======= ======= OBJECTS ======= ======= ======= ======= =======
@@ -192,6 +192,29 @@ function initApp() {
         }
     }
 
+    // ======= ======= ======= updateMenuItem ======= ======= =======
+    Display.prototype.updateMenuItem = function(whichCategory, whichFilter) {
+        console.log("updateMenuItem");
+        console.log("  whichFilter: ", whichFilter);
+        console.log("  whichCategory: ", whichCategory);
+
+        if ($.isArray(whichFilter)) {
+            whichFilter = whichFilter[0];
+        }
+
+        var menuObject = filterMenu[whichFilter];
+        var menuText = menuObject.text;
+
+        // == modify selected filter menu item to show selection
+        htmlString = "<a id='" + whichFilter + "' href='#'>" + menuText + "</a>";
+        selectedFilterElement = $("#" + whichCategory);
+        selectedFilterElement.empty();
+        selectedFilterElement.html(htmlString);
+        selectedFilterElement.addClass("activeFilter");
+        selectedFilterElement.addClass(whichCategory + "-set");
+        this.activateFilterRelease(selectedFilterElement);
+    }
+
     // ======= ======= ======= activateFilterSelect ======= ======= =======
     Display.prototype.activateFilterSelect = function(nextItem) {
         console.log("activateFilterSelect");
@@ -207,16 +230,19 @@ function initApp() {
         $(nextElement).off("click").on("click", function(event){
             console.log("");
             console.log("-- selectFilter -- ");
+            console.log("  self.dataFiltersArray: ", self.dataFiltersArray);
+
             var classList = $(this).attr('class').split(/\s+/);
             var whichCategory = classList[1];
             var whichFilter = this.id;
-            event.stopImmediatePropagation();
-
             var menuObject = filterMenu[whichFilter];
             var whichColumn = menuObject.column;
             var whichValue = menuObject.value;
 
-            removeMarkers();
+            if (whichCategory != "geography") {
+                var infoWindow = $("#info").css("display", "block")
+            }
+            event.stopImmediatePropagation();
 
             // == set selected filter value on display object (geography, levels, agency, expenditures, students)
             switch(whichCategory) {
@@ -240,31 +266,8 @@ function initApp() {
             }
             self.updateMenuItem(whichCategory, whichFilter);
             console.log("  self.dataFiltersArray: ", self.dataFiltersArray);
-            barChartObject.makeDataMap();
+            mapDataObject.makeDataMap();
         });
-    }
-
-    // ======= ======= ======= updateMenuItem ======= ======= =======
-    Display.prototype.updateMenuItem = function(whichCategory, whichFilter) {
-        console.log("updateMenuItem");
-        console.log("  whichFilter: ", whichFilter);
-        console.log("  whichCategory: ", whichCategory);
-
-        if ($.isArray(whichFilter)) {
-            whichFilter = whichFilter[0];
-        }
-
-        var menuObject = filterMenu[whichFilter];
-        var menuText = menuObject.text;
-
-        // == modify selected filter menu item to show selection
-        htmlString = "<a id='" + whichFilter + "' href='#'>" + menuText + "</a>";
-        selectedFilterElement = $("#" + whichCategory);
-        selectedFilterElement.empty();
-        selectedFilterElement.html(htmlString);
-        selectedFilterElement.addClass("activeFilter");
-        selectedFilterElement.addClass(whichCategory + "-set");
-        this.activateFilterRelease(selectedFilterElement);
     }
 
     // ======= ======= ======= activateFilterRelease ======= ======= =======
@@ -290,6 +293,7 @@ function initApp() {
                         nextMenu = self.geographyMenu;
                         prevClass = "geography-set";
                         restoreFilterMenu(this, nextMenu);
+                        mapDataObject.makeDataMap("Quadrant");
                     }
                     break;
                 case "levels":
@@ -318,15 +322,12 @@ function initApp() {
                     break;
             }
 
-            removeMapListeners();
-            removeMarkers();
-
             // ======= ======= ======= restoreGeoMenu ======= ======= =======
             function restoreGeoMenu(selectedFilterElement) {
                 console.log("restoreGeoMenu");
                 self.dataFiltersArray[0][1] = null;
                 self.updateMenuItem("geography", self.dataFiltersArray[0]);
-                barChartObject.resetMap(self.dataFiltersArray[0][0]);
+                mapDataObject.resetMap();
             }
 
             // ======= ======= ======= restoreFilterMenu ======= ======= =======
@@ -342,9 +343,20 @@ function initApp() {
                 menuHtml += "</li>";
                 $(selectedFilterElement).append(menuHtml);
                 self.activateFilterMenu(nextMenu);
+                var infoWindow = $("#info").css("display", "none")
+            }
+
+            restoreZoneListeners(self.dataFiltersArray[0][0]);
+            removeMarkers();
+
+            // ======= ======= ======= restoreZoneListeners ======= ======= =======
+            function restoreZoneListeners(zoneType) {
+                console.log("restoreZoneListeners");
+
+                mapDataObject.activateZoneData(zoneType);
             }
         });
-        console.log("  self.dataFiltersArray: ", self.dataFiltersArray);
+        // console.log("  self.dataFiltersArray: ", self.dataFiltersArray);
     }
 
 
@@ -360,7 +372,7 @@ function initApp() {
     Chart.prototype.makeDataMap = function() {
         console.log("");
         console.log("===== makeDataMap =====");
-        console.log("  displayObject.dataFiltersArray: ", displayObject.dataFiltersArray);
+        // console.log("  displayObject.dataFiltersArray: ", displayObject.dataFiltersArray);
 
         var self = this;
         var filterFlag = false;
@@ -381,7 +393,7 @@ function initApp() {
             console.log("*** ajax success ***");
             console.dir(geoJsonData);
 
-            displayObject.zoneGeoson = geoJsonData;
+            displayObject.zoneGeojson = geoJsonData;
 
             // == make aggregator array for aggregated zone data
             self.zoneDataArray = [];
@@ -470,6 +482,7 @@ function initApp() {
             displayObject.schoolGeojson = jsonData;
 
             var nextFilter;
+            var selectedCodesArray = [];
             var selectedDataArray = [];
 
             // == get school codes for selected zone, level and type
@@ -530,9 +543,11 @@ function initApp() {
                 if (filterFlagCount == 3) {
                     schoolData = getDataDetails(nextSchool);
                     selectedDataArray.push(schoolData)
+                    selectedCodesArray.push(schoolData.schoolCode)
                 }
             }
             console.log("  selectedDataArray.length: ", selectedDataArray.length);
+            console.log("  selectedCodesArray: ", selectedCodesArray);
 
             // == build zone and data layers on map
             self.makeSchoolsMap(selectedDataArray);
@@ -554,6 +569,10 @@ function initApp() {
 
         var self = this;
 
+        // ======= clear existing listeners if any =======
+        removeMapListeners();
+        removeMarkers();
+
         // ======= clear previous geojson layer =======
         map.data.forEach(function(feature) {
             if (feature) {
@@ -564,6 +583,7 @@ function initApp() {
 
         // ======= add geojson layer =======
         map.data.addGeoJson(geoJsonData);
+        // console.log("  map.data0: ", map.data);
 
         // == set indexes
         var colorIndex = -1;
@@ -587,7 +607,7 @@ function initApp() {
             } else if ((zoneType == "FeederMS") || (zoneType == "FeederHS")) {
                 itemName = feature.getProperty('SCHOOLNAME');
             }
-            console.log("  itemName: " + itemName);
+            // console.log("  itemName: " + itemName);
 
             // ======= traverse geometry paths for each feature =======
             feature.getGeometry().getArray().forEach(function(path) {
@@ -611,7 +631,11 @@ function initApp() {
             feature.setProperty('index', featureIndex);
             feature.setProperty('center', centerLatLng);
             feature.setProperty('featureBounds', featureBounds);
-            feature.setProperty('itemColor', fillColors[colorIndex]);
+            if (zoneType == "Quadrant") {
+                feature.setProperty('itemColor', "white");
+            } else {
+                feature.setProperty('itemColor', fillColors[colorIndex]);
+            }
             feature.setProperty('itemName', itemName);
 
         });
@@ -630,115 +654,11 @@ function initApp() {
         self.activateZoneData(zoneType);
     }
 
-    // ======= ======= ======= makeSchoolsMap ======= ======= =======
-    Chart.prototype.makeSchoolsMap = function(selectedDataArray) {
-        console.log("");
-        console.log("----- makeSchoolsMap -----");
-
-        var nextSchoolData, nextSchool, nextSchoolCode, nextSchoolType, nextLat, nextLng, schoolLoc, typeColor;
-        var schoolMarkersArray = [];
-
-        // == clear existing listeners if any
-        removeMapListeners();
-
-        // == make school markers
-        for (var i = 0; i < selectedDataArray.length; i++) {
-            nextSchoolData = selectedDataArray[i];
-            nextSchool = nextSchoolData.schoolName;
-            nextSchoolCode = nextSchoolData.schoolCode;
-            nextSchoolType = nextSchoolData.schoolAgency;
-            nextLat = nextSchoolData.schoolLAT;
-            nextLng = nextSchoolData.schoolLON;
-            schoolLoc = new google.maps.LatLng(nextLat, nextLng);
-
-            if (nextSchoolType == "DCPS") {
-                fillColor = "red";
-                strokeColor = "maroon";
-            } else {
-                fillColor = "orange";
-                strokeColor = "crimson ";
-            }
-
-            // == make school marker
-            var schoolMarker = new google.maps.Circle({
-                map: map,
-                title: nextSchool,
-                schoolName: nextSchool,
-                schoolCode: nextSchoolCode,
-                schoolIndex: i,
-                center: schoolLoc,
-                radius: 200,
-                strokeColor: "black",
-                strokeOpacity: 1,
-                strokeWeight: 1,
-                fillColor: fillColor,
-                fillOpacity: 1
-            });
-
-            // == store marker on chart object
-            this.schoolMarkersArray.push(schoolMarker);
-
-            // == activate marker mouseover/mouseout
-            this.activateSchoolMarker(schoolMarker);
-        }
-    }
-
-    // ======= ======= ======= activateSchoolMarker ======= ======= =======
-    Chart.prototype.activateSchoolMarker = function(schoolMarker) {
-        console.log("activateSchoolMarker");
-
-        // ======= mouseover event listener =======
-        var schoolMouseover = schoolMarker.addListener('mouseover', function(event) {
-            // console.log("--- mouseover ---");
-            var schoolName = this.schoolName;
-            var schoolCode = this.schoolCode;
-            var schoolIndex = this.schoolIndex;
-            var schoolLoc = this.center;
-
-            var overlay = new google.maps.OverlayView();
-            overlay.draw = function() {};
-            overlay.setMap(map);
-            overlay.onAdd = function() {
-                var projection = this.getProjection();
-                var pixel = projection.fromLatLngToContainerPixel(schoolLoc);
-                var locX = parseInt(pixel.x + 5);
-                var locY = parseInt(pixel.y + 115);
-                makeTooltip(schoolIndex, locX, locY);
-            };
-
-            map.data.overrideStyle(event.schoolMarker, {
-                fillColor: "gray",
-                strokeWeight: 2
-            });
-        });
-
-        // ======= mouseout event listener =======
-        var schoolMouseout = schoolMarker.addListener('mouseout', function(event) {
-            // console.log("--- mouseout ---");
-            // makeTooltip(null);
-        });
-
-        // ======= click event listener =======
-        var schoolMouseClick = schoolMarker.addListener('click', function(event) {
-            console.log("--- click ---");
-            var schoolName = this.schoolName;
-            console.log("  schoolName: ", schoolName);
-            $("#schoolInfo").html("<p class='schoolName'>" + schoolName + "</p>");
-        });
-
-        this.mapListenersArray.push(schoolMouseover);
-        this.mapListenersArray.push(schoolMouseout);
-        this.mapListenersArray.push(schoolMouseClick);
-    }
-
     // ======= ======= ======= activateZoneData ======= ======= =======
     Chart.prototype.activateZoneData = function(zoneType) {
         console.log("activateZoneData");
 
         var self = this;
-
-        // == clear existing listeners if any
-        removeMapListeners();
 
         // ======= add mouseover event listeners =======
         var zoneMouseover = map.data.addListener('mouseover', function(event) {
@@ -774,13 +694,11 @@ function initApp() {
             });
             makeTooltip(null);
         });
-        this.mapListenersArray.push(zoneMouseover);
-        this.mapListenersArray.push(zoneMouseout);
 
-        // ======= click event listeners =======
+        // ========= click event listeners =========
         if (zoneType == "Ward") {
 
-            // == zoom to the clicked feature
+            // ========= zoom to the clicked feature =========
             var zoneMouseClick = map.data.addListener('click', function(event) {
                 console.log("");
                 console.log("--- select ward ---");
@@ -789,24 +707,25 @@ function initApp() {
                 var menuObject = filterMenu["Ward"];
                 menuObject.value = wardNumber;
                 displayObject.dataFiltersArray[0][1] = wardNumber;
-                barChartObject.whichGeography = ["Ward", wardNumber];
+                mapDataObject.whichGeography = ["Ward", wardNumber];
                 var selectedWard = $("#" + zoneType);
                 $(selectedWard).text(zoneType + " " + wardNumber);
                 console.log("  displayObject.dataFiltersArray: ", displayObject.dataFiltersArray);
 
                 // == bounds: rectangle surrounding geo area
-                removeMarkers();
+                // removeMarkers();
                 zoomToZone(event);
             });
 
         } else if ((zoneType == "FeederMS") || (zoneType == "FeederHS")) {
 
+            // ========= zoom to the clicked feature =========
             var zoneMouseClick = map.data.addListener('click', function(event) {
                 console.log("");
                 console.log("--- select feeder ---");
                 var whichFeeder = event.feature.getProperty('SCHOOLNAME');
                 displayObject.dataFiltersArray[0][1] = whichFeeder;
-                barChartObject.whichGeography = ["Feeder", whichFeeder];
+                mapDataObject.whichGeography = ["Feeder", whichFeeder];
                 var menuObject = filterMenu[zoneType];
                 menuObject.value = whichFeeder;
                 var selectedFeeder = $("#" + zoneType);
@@ -814,11 +733,17 @@ function initApp() {
                 console.log("displayObject.dataFiltersArray: ", displayObject.dataFiltersArray);
 
                 // == bounds: rectangle surrounding geo area
-                removeMarkers();
+                // removeMarkers();
                 zoomToZone(event);
             });
         }
+
+        // == add listeners to listeners array
+        this.mapListenersArray.push(zoneMouseover);
+        this.mapListenersArray.push(zoneMouseout);
         this.mapListenersArray.push(zoneMouseClick);
+        console.log("  zoneMouseover: ", zoneMouseover);
+
 
         // ======= ======= ======= zoomToZone ======= ======= =======
         function zoomToZone(event) {
@@ -847,6 +772,160 @@ function initApp() {
         }
     }
 
+    // ======= ======= ======= makeSchoolsMap ======= ======= =======
+    Chart.prototype.makeSchoolsMap = function(selectedDataArray) {
+        console.log("");
+        console.log("----- makeSchoolsMap -----");
+
+        var nextSchoolData, nextSchool, nextSchoolCode, nextSchoolType, nextLat, nextLng, schoolLoc, typeColor;
+        var schoolMarkersArray = [];
+        var schoolMarker;
+        var infoFlag = false;
+        var infoText = "<p>";
+
+        // ======= clear existing listeners if any =======
+        removeMapListeners();
+        removeMarkers();
+
+        // == make school markers
+        for (var i = 0; i < selectedDataArray.length; i++) {
+            nextSchoolData = selectedDataArray[i];
+            schoolMarker = null;
+            nextSchool = nextSchoolData.schoolName;
+            nextSchoolCode = nextSchoolData.schoolCode;
+            nextSchoolType = nextSchoolData.schoolAgency;
+            nextLat = nextSchoolData.schoolLAT;
+            nextLng = nextSchoolData.schoolLON;
+            schoolLoc = new google.maps.LatLng(nextLat, nextLng);
+            console.log("-- nextSchoolCode: ", nextSchoolCode);
+            console.log("  nextSchoolData: ", nextSchoolData);
+            // console.log("  nextLat: ", nextLat);
+            // console.log("  nextLng: ", nextLng);
+
+            // == set color of school circle
+            if (nextSchoolType == "DCPS") {
+                fillColor = "red";
+                strokeColor = "maroon";
+            } else {
+                fillColor = "orange";
+                strokeColor = "crimson ";
+            }
+
+            // == indicate missing info if required
+            if ((nextLat == "NA") || (nextLng == "NA") || (nextLat == null) || (nextLng == null)) {
+                infoText += nextSchoolCode + " ";
+                infoFlag = true;
+
+            // == show markers for available data
+            } else {
+                // == make school marker
+                schoolMarker = new google.maps.Circle({
+                    map: map,
+                    title: nextSchool,
+                    schoolName: nextSchool,
+                    schoolCode: nextSchoolCode,
+                    schoolIndex: i,
+                    center: schoolLoc,
+                    radius: 200,
+                    strokeColor: "black",
+                    strokeOpacity: 1,
+                    strokeWeight: 1,
+                    fillColor: fillColor,
+                    fillOpacity: 1,
+                    clickable: true
+                });
+
+                schoolMarker.setMap(map);
+
+                // == store marker on chart object
+                this.schoolMarkersArray.push(schoolMarker);
+
+                // == activate marker mouseover/mouseout
+                this.activateSchoolMarker(schoolMarker);
+            }
+        }
+
+        if (infoFlag == true) {
+            $("#info").css("display", "block");
+            infoText += " info not available.</p>";
+            $("#infoText").html(infoText);
+        }
+        this.checkSchoolMarkers();
+    }
+
+
+    // ======= ======= ======= activateSchoolMarker ======= ======= =======
+    Chart.prototype.activateSchoolMarker = function(schoolMarker) {
+        console.log("activateSchoolMarker");
+
+        // ======= mouseover event listener =======
+        google.maps.event.addListener(schoolMarker, 'mouseover', function (event) {
+        // var schoolMouseover = schoolMarker.addListener('mouseover', function(event) {
+            console.log("--- mouseover ---");
+            console.log("  this.schoolCode: ", this.schoolCode);
+            var schoolName = this.schoolName;
+            var schoolCode = this.schoolCode;
+            var schoolIndex = this.schoolIndex;
+            var schoolLoc = this.center;
+
+            var overlay = new google.maps.OverlayView();
+            overlay.draw = function() {};
+            overlay.setMap(map);
+            overlay.onAdd = function() {
+                var projection = this.getProjection();
+                var pixel = projection.fromLatLngToContainerPixel(schoolLoc);
+                var locX = parseInt(pixel.x + 5);
+                var locY = parseInt(pixel.y + 115);
+                makeTooltip(schoolCode, locX, locY);
+                showInfo(schoolName);
+            };
+
+            map.data.overrideStyle(event.schoolMarker, {
+                fillColor: "gray",
+                strokeWeight: 2
+            });
+        });
+
+        // ======= mouseout event listener =======
+        google.maps.event.addListener(schoolMarker, 'mouseout', function (event) {
+        // var schoolMouseout = schoolMarker.addListener('mouseout', function(event) {
+            // console.log("--- mouseout ---");
+            makeTooltip(null);
+            showInfo(null);
+        });
+
+        // ======= click event listener =======
+        google.maps.event.addListener(schoolMarker, 'mouseout', function (event) {
+        // var schoolMouseClick = schoolMarker.addListener('click', function(event) {
+            console.log("--- click ---");
+            var schoolName = this.schoolName;
+            console.log("  schoolName: ", schoolName);
+        });
+
+        // this.mapListenersArray.push(schoolMouseover);
+        // this.mapListenersArray.push(schoolMouseout);
+        // this.mapListenersArray.push(schoolMouseClick);
+        // console.log("  schoolMouseover: ", schoolMouseover);
+    }
+
+    // ======= ======= ======= checkSchoolMarkers ======= ======= =======
+    Chart.prototype.checkSchoolMarkers = function(schoolMarker) {
+        console.log("checkSchoolMarkers");
+
+        console.log("  markers_count: ", this.schoolMarkersArray.length);
+        for (var i = 0; i < this.schoolMarkersArray.length; i++) {
+            nextMarker = this.schoolMarkersArray[i];
+            if (i == 0) {
+                console.log("  nextMarker: ", nextMarker);
+            }
+            if ((nextMarker.ua[0].R == null) || (nextMarker.ua[1].R == null) || (nextMarker.ua[2].R == null)) {
+                console.log("  ** missing listeners");
+            }
+            console.log("  nextMarker.ua[0].R: ", nextMarker.ua[0].R);
+        }
+    }
+
+
     // ======= ======= ======= resetMap ======= ======= =======
     Chart.prototype.resetMap = function() {
         console.log("resetMap");
@@ -858,11 +937,6 @@ function initApp() {
         var savedMapLng = this.mapStateArray[3];
         map.setCenter(new google.maps.LatLng(savedMapLat,savedMapLng));
         map.setZoom(savedMapZoom);
-
-        for (var i = 0; i < displayObject.zoneGeojson.length; i++) {
-            self.activateZoneData(zoneType);
-        }
-
     }
 
 
@@ -921,9 +995,14 @@ function initApp() {
 
             map = new google.maps.Map(document.getElementById('map'), {
                 center: {lat: 38.89, lng: -77.00},
-                disableDefaultUI: true,
-                disableDoubleClickZoom: false,
-                draggable: false,
+                disableDefaultUI: false,
+                disableDoubleClickZoom: true,
+                zoomControl: true,
+                zoomControlOpt: {
+                    style: 'SMALL',
+                    position: 'TOP_LEFT'
+                },
+                draggable: true,
                 scrollwheel: false,
                 styles: styleArray,     // styles for map tiles
                 mapTypeId: google.maps.MapTypeId.TERRAIN,
@@ -936,7 +1015,12 @@ function initApp() {
             map = new google.maps.Map(document.getElementById('map2'), {
                 center: {lat: 38.89, lng: -77.00},
                 disableDefaultUI: true,
-                disableDoubleClickZoom: false,
+                disableDoubleClickZoom: true,
+                zoomControl: true,
+                zoomControlOpt: {
+                    style: 'SMALL',
+                    position: 'TOP_LEFT'
+                },
                 draggable: false,
                 scrollwheel: false,
                 styles: styleArray,     // styles for map tiles
@@ -946,27 +1030,21 @@ function initApp() {
         }
         google.maps.event.addListener(map, 'tilesloaded', function() {
             console.log("tilesloaded.addListener");
-            if (!barChartObject.mapBounds) {
-                barChartObject.mapBounds = map.getBounds();
-                // console.log("  barChartObject.mapBounds: ",barChartObject.mapBounds);
+            if (!mapDataObject.mapBounds) {
+                mapDataObject.mapBounds = map.getBounds();
+                // console.log("  mapDataObject.mapBounds: ",mapDataObject.mapBounds);
             }
         });
 
     }
 
-    // ======= ======= ======= makeTooltip ======= ======= =======
-    function makeTooltip(tooltipText, locX, locY) {
-        // console.log("makeTooltip");
-        if (tooltipText) {
-            // console.log("  tooltipText: ", tooltipText);
-            tooltipString = "<p>" + tooltipText + "</p>";
-            $("#tooltips").html(tooltipString);
-            $("#tooltips").css("left", locX);
-            $("#tooltips").css("top", locY);
-        } else {
-            $("#tooltips").html("");
-        }
-    }
+
+
+    // ======= ======= ======= ======= ======= UTILITIES ======= ======= ======= ======= =======
+    // ======= ======= ======= ======= ======= UTILITIES ======= ======= ======= ======= =======
+    // ======= ======= ======= ======= ======= UTILITIES ======= ======= ======= ======= =======
+
+
 
     // ======= ======= ======= saveMapState ======= ======= =======
     function saveMapState(map) {
@@ -976,18 +1054,7 @@ function initApp() {
         var mapLat = mapCentre.lat();
         var mapLng = mapCentre.lng();
         var mapStateArray = [mapZoom, mapCentre, mapLat, mapLng];
-        barChartObject.mapStateArray = mapStateArray;
-    }
-
-    // ======= ======= ======= removeMarkers ======= ======= =======
-    function removeMarkers() {
-        console.log("removeMarkers");
-        var schoolMarkersArray = barChartObject.schoolMarkersArray;
-        if (schoolMarkersArray) {
-            for(i = 0; i < schoolMarkersArray.length; i++){
-                schoolMarkersArray[i].setMap(null);
-            }
-        }
+        mapDataObject.mapStateArray = mapStateArray;
     }
 
     // ======= ======= ======= getZoneUrl ======= ======= =======
@@ -1063,15 +1130,63 @@ function initApp() {
     function removeMapListeners() {
         console.log("removeMapListeners");
 
-        console.log("  mapListenersArray_before: ", barChartObject.mapListenersArray.length);
-        if (barChartObject.mapListenersArray.length > 0) {
-            for (var i = 0; i < barChartObject.mapListenersArray.length; i++) {
-                google.maps.event.removeListener(barChartObject.mapListenersArray[i]);
+        google.maps.event.clearListeners(map, 'mouseover');
+        google.maps.event.clearListeners(map, 'mouseout');
+        google.maps.event.clearListeners(map, 'click');
+
+        console.log("  listeners_before: ", mapDataObject.mapListenersArray.length);
+        var mapListenersArray = mapDataObject.mapListenersArray;
+        if (mapListenersArray.length > 0) {
+            for (var i = 0; i < mapListenersArray.length; i++) {
+                google.maps.event.removeListener(mapListenersArray[i]);
             }
         }
-        barChartObject.mapListenersArray = [];
-        console.log("  mapListenersArray_after: ", barChartObject.mapListenersArray.length);
+        mapDataObject.mapListenersArray = [];
+        console.log("  listeners_after: ", mapDataObject.mapListenersArray.length);
     }
+
+    // ======= ======= ======= removeMarkers ======= ======= =======
+    function removeMarkers() {
+        console.log("removeMarkers");
+
+        console.log("  markers_before: ", mapDataObject.schoolMarkersArray.length);
+        var schoolMarkersArray = mapDataObject.schoolMarkersArray;
+        if (schoolMarkersArray) {
+            for(i = 0; i < schoolMarkersArray.length; i++){
+                schoolMarkersArray[i].setMap(null);
+                schoolMarkersArray[i] = null;
+            }
+        }
+        mapDataObject.schoolMarkersArray = [];
+        console.log("  markers_after: ", mapDataObject.schoolMarkersArray.length);
+    }
+
+    // ======= ======= ======= makeTooltip ======= ======= =======
+    function makeTooltip(tooltipText, locX, locY) {
+        // console.log("makeTooltip");
+        if (tooltipText) {
+            // console.log("  tooltipText: ", tooltipText);
+            tooltipString = "<p>" + tooltipText + "</p>";
+            $("#tooltips").html(tooltipString);
+            $("#tooltips").css("left", locX);
+            $("#tooltips").css("top", locY);
+        } else {
+            $("#tooltips").html("");
+        }
+    }
+
+    // ======= ======= ======= showInfo ======= ======= =======
+    function showInfo(infoText) {
+        // console.log("showInfo");
+        if (infoText) {
+            // console.log("  infoText: ", infoText);
+            infoText = "<p>" + infoText + "</p>";
+            $("#infoText").html(infoText);
+        } else {
+            $("#infoText").html("");
+        }
+    }
+
 
 
 
@@ -1090,7 +1205,7 @@ function initApp() {
     initDisplayObjects();
     displayObject.initFilterMenus();
     saveMapState(map);
-    barChartObject.makeDataMap("Quadrant");
+    mapDataObject.makeDataMap("Quadrant");
 
 
 
