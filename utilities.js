@@ -54,24 +54,6 @@
         }
     }
 
-    btn_popup.onclick = function(e){
-        // smoke
-        spreadSmoke(true);
-        // reset div position
-        popup.style.top = "100px";
-        popup.style.left = "100px";
-        // popup.style.width = window.innerWidth - SCROLL_WIDTH + "px";
-        // popup.style.height = window.innerHeight - SCROLL_WIDTH + "px";
-        popup.style.width = 160 + "px";
-        popup.style.height = 90 + "px";
-        popup.style.display = "block";
-    }
-
-    btn_close.onclick = function(e){
-        popup.style.display = "none";
-        smoke.style.display = "none";
-    }
-
     window.onresize = function(e){
         spreadSmoke();
     }

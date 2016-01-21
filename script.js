@@ -797,10 +797,6 @@ function initApp() {
             nextLat = nextSchoolData.schoolLAT;
             nextLng = nextSchoolData.schoolLON;
             schoolLoc = new google.maps.LatLng(nextLat, nextLng);
-            console.log("-- nextSchoolCode: ", nextSchoolCode);
-            console.log("  nextSchoolData: ", nextSchoolData);
-            // console.log("  nextLat: ", nextLat);
-            // console.log("  nextLng: ", nextLng);
 
             // == set color of school circle
             if (nextSchoolType == "DCPS") {
@@ -818,21 +814,19 @@ function initApp() {
 
             // == show markers for available data
             } else {
-                // == make school marker
-                schoolMarker = new google.maps.Circle({
+
+                var schoolMarker = new google.maps.Marker({
+                    position: schoolLoc,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 5
+                    },
+                    draggable: true,
                     map: map,
                     title: nextSchool,
                     schoolName: nextSchool,
                     schoolCode: nextSchoolCode,
-                    schoolIndex: i,
-                    center: schoolLoc,
-                    radius: 200,
-                    strokeColor: "black",
-                    strokeOpacity: 1,
-                    strokeWeight: 1,
-                    fillColor: fillColor,
-                    fillOpacity: 1,
-                    clickable: true
+                    schoolIndex: i
                 });
 
                 schoolMarker.setMap(map);
@@ -850,7 +844,7 @@ function initApp() {
             infoText += " info not available.</p>";
             $("#infoText").html(infoText);
         }
-        this.checkSchoolMarkers();
+        // this.checkSchoolMarkers();
     }
 
 
@@ -862,11 +856,12 @@ function initApp() {
         google.maps.event.addListener(schoolMarker, 'mouseover', function (event) {
         // var schoolMouseover = schoolMarker.addListener('mouseover', function(event) {
             console.log("--- mouseover ---");
-            console.log("  this.schoolCode: ", this.schoolCode);
             var schoolName = this.schoolName;
             var schoolCode = this.schoolCode;
             var schoolIndex = this.schoolIndex;
-            var schoolLoc = this.center;
+            var schoolLoc = this.position;
+            console.log("  this.position: ", this.position);
+            console.log("  this.schoolCode: ", this.schoolCode);
 
             var overlay = new google.maps.OverlayView();
             overlay.draw = function() {};
@@ -879,11 +874,6 @@ function initApp() {
                 makeTooltip(schoolCode, locX, locY);
                 showInfo(schoolName);
             };
-
-            map.data.overrideStyle(event.schoolMarker, {
-                fillColor: "gray",
-                strokeWeight: 2
-            });
         });
 
         // ======= mouseout event listener =======
@@ -895,11 +885,15 @@ function initApp() {
         });
 
         // ======= click event listener =======
-        google.maps.event.addListener(schoolMarker, 'mouseout', function (event) {
+        google.maps.event.addListener(schoolMarker, 'click', function (event) {
         // var schoolMouseClick = schoolMarker.addListener('click', function(event) {
             console.log("--- click ---");
             var schoolName = this.schoolName;
+            var schoolCode = this.schoolCode;
             console.log("  schoolName: ", schoolName);
+            console.log("  schoolCode: ", schoolCode);
+
+            loadProfilePage(schoolCode);
         });
 
         // this.mapListenersArray.push(schoolMouseover);
@@ -947,11 +941,25 @@ function initApp() {
 
 
 
+    // ======= ======= ======= loadProfilePage ======= ======= =======
+    function loadProfilePage(schoolCode) {
+        console.log('loadProfilePage');
+        var href = window.location.href; // Returns path only
+        var pathname = window.location.pathname; // Returns path only
+        console.log("  href: ", href);
+        console.log("  pathname: ", pathname);
+        console.log("  schoolCode: ", schoolCode);
+
+        // ======= index map =======
+        if ((pathname == "/") || (pathname == "/index.html") || (pathname == "/schoolMod/" || (pathname == "/schoolMod/index.html"))) {
+            // window.location.href = pathname + "profile.html";
+            window.location.href = "profile.html" + "?schoolCode=" + schoolCode;
+        }
+    }
+
     // ======= ======= ======= initMap ======= ======= =======
     function initMap() {
         console.log('initMap');
-
-        // road.arterial, poi.business
 
         // ======= map styles =======
         var styleArray = [
@@ -1033,10 +1041,99 @@ function initApp() {
             if (!mapDataObject.mapBounds) {
                 mapDataObject.mapBounds = map.getBounds();
                 // console.log("  mapDataObject.mapBounds: ",mapDataObject.mapBounds);
+                // makeOverlay();
             }
         });
 
     }
+
+    // ======= ======= ======= makeOverlay ======= ======= =======
+    function makeOverlay() {
+        console.log('makeOverlay');
+
+        var schoolOverlay1;
+        schoolIconsOverlay.prototype = new google.maps.OverlayView();
+
+        var bounds = new google.maps.LatLngBounds();
+        var center = bounds.getCenter();
+
+        // var bounds = new google.maps.LatLngBounds(
+        //     new google.maps.LatLng(62.281819, -150.287132),
+        //     new google.maps.LatLng(62.400471, -150.005608));
+
+        var srcImageP = "images/15xvbd5.png";
+        // var srcImageP = "images/schoolIconP.png";
+        var srcImageC = "images/schoolIconC.png";
+
+        schoolOverlay1 = new schoolIconsOverlay(bounds, srcImageP, map);
+
+        // ======= ======= ======= Overlay.onAdd ======= ======= =======
+        schoolIconsOverlay.prototype.onAdd = function() {
+            console.log('Overlay.onAdd');
+
+            var div = document.createElement('div');
+            div.style.borderStyle = 'none';
+            div.style.borderWidth = '0px';
+            div.style.position = 'absolute';
+
+            // Create the img element and attach it to the div.
+            var img = document.createElement('img');
+            img.src = this.image_;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.position = 'absolute';
+            div.appendChild(img);
+
+            this.iconDiv_ = div;
+
+            // Add the element to the "overlayLayer" pane.
+            var panes = this.getPanes();
+            panes.overlayLayer.appendChild(div);
+        };
+
+        // ======= ======= ======= Overlay.draw ======= ======= =======
+        schoolIconsOverlay.prototype.draw = function() {
+            console.log('Overlay.draw');
+
+            // We use the south-west and north-east
+            // coordinates of the overlay to peg it to the correct position and size.
+            // To do this, we need to retrieve the projection from the overlay.
+            var overlayProjection = this.getProjection();
+
+            // Retrieve the south-west and north-east coordinates of this overlay
+            // in LatLngs and convert them to pixel coordinates.
+            // We'll use these coordinates to resize the div.
+            var sw = overlayProjection.fromLatLngToDivPixel(this.bounds_.getSouthWest());
+            var ne = overlayProjection.fromLatLngToDivPixel(this.bounds_.getNorthEast());
+
+            // Resize the image's div to fit the indicated dimensions.
+            var div = this.iconDiv_;
+            div.style.left = sw.x + 'px';
+            div.style.top = ne.y + 'px';
+            div.style.width = (ne.x - sw.x) + 'px';
+            div.style.height = (sw.y - ne.y) + 'px';
+        };
+
+        // ======= ======= ======= schoolIconsOverlay ======= ======= =======
+        function schoolIconsOverlay(bounds, image, map) {
+            console.log('schoolIconsOverlay');
+
+          // Initialize all properties.
+          this.bounds_ = bounds;
+          this.image_ = image;
+          this.map_ = map;
+
+          // Define a property to hold the image's div. We'll
+          // actually create this div upon receipt of the onAdd()
+          // method so we'll leave it null for now.
+          this.iconDiv_ = null;
+
+          // Explicitly call setMap on this overlay.
+          this.setMap(map);
+        }
+    }
+
+
 
 
 
