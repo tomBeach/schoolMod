@@ -852,12 +852,23 @@ function initApp() {
             // == show markers for available data
             } else {
 
+                var iconSize = 0.3;
+                var icon = {
+                    path: "M-20,0a20,20 0 1,0 40,0a20,20 0 1,0 -40,0",
+                    fillColor: fillColor,
+                    strokeColor: strokeColor,
+                    fillOpacity: 1,
+                    strokeWeight: 1,
+                    scale: iconSize
+                }
+
                 var schoolMarker = new google.maps.Marker({
                     position: schoolLoc,
-                    icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        scale: 5
-                    },
+                    icon: icon,
+                    // icon: {
+                    //     path: google.maps.SymbolPath.CIRCLE,
+                    //     scale: 5
+                    // },
                     draggable: true,
                     map: map,
                     title: nextSchool,
