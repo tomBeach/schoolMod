@@ -33,8 +33,9 @@ function initApp() {
 
         // == Ward, FeederMS, FeederHS, Quadrant
         filterMenu.Ward = { id:"Ward", category:"geography", text:"Ward", column:"WARD", value:null };
-        filterMenu.FeederHS = { id:"FeederHS", category:"geography", text:"Feeder HS", column:"FeederHS", value:null };
-        filterMenu.FeederMS = { id:"FeederMS", category:"geography", text:"Feeder MS", column:"FeederMS", value:null };
+        filterMenu.FeederHS = { id:"FeederHS", category:"geography", text:"High School Feeders", column:"FeederHS", value:null };
+        filterMenu.FeederMS = { id:"FeederMS", category:"geography", text:"Middle School Feeders", column:"FeederMS", value:null };
+        filterMenu.Elementary = { id:"Elementary", category:"geography", text:"Elementary Zones", column:null, value:null };
         filterMenu.Quadrant = { id:"Quadrant", category:"geography", text:"Quadrant", column:null, value:null };
 
         // == Public, Charter
@@ -94,7 +95,7 @@ function initApp() {
     function Display(whichDisplay) {
         console.log("Display");
         this.name = whichDisplay;
-        this.geographyMenu = ["geography", filterMenu.Ward, filterMenu.FeederHS, filterMenu.FeederMS, filterMenu.Quadrant];
+        this.geographyMenu = ["geography", filterMenu.Ward, filterMenu.FeederHS, filterMenu.FeederMS, filterMenu.Elementary, filterMenu.Quadrant];
         this.agencyMenu = ["agency", filterMenu.Public, filterMenu.Charter];
         this.levelsMenu = ["levels", filterMenu.PK3K, filterMenu.Elem, filterMenu.Middle, filterMenu.High, filterMenu.ES_MS, filterMenu.MS_HS, filterMenu.Alt, filterMenu.SpecEd];
         this.expendMenu = ["expenditures", filterMenu.spendPast, filterMenu.spendLifetime, filterMenu.spendPlanned, filterMenu.spendSqFt, filterMenu.spendEnroll];
@@ -443,8 +444,10 @@ function initApp() {
 
         if (GeoTypeFilter) {
             var checkGeoType = GeoTypeFilter;
+            var geoSuffix = " " + checkGeoType.substring(checkGeoType.length - 2, checkGeoType.length);
+            console.log("  geoSuffix: ", geoSuffix);
             if (GeoFilter) {
-                var checkGeo = filterMenu[GeoTypeFilter].value;
+                var checkGeo = filterMenu[GeoTypeFilter].value + geoSuffix;
             }
         }
         if (LevelFilter) {
@@ -588,6 +591,7 @@ function initApp() {
         // == set indexes
         var colorIndex = -1;
         var featureIndex = -1;
+        var nameString = "";
 
         // ======= add index, ward, feeder properties to each feature =======
         map.data.forEach(function(feature) {
@@ -604,10 +608,10 @@ function initApp() {
             // == get name of each feature
             if ((zoneType == "Ward") || (zoneType == "Quadrant")) {
                 itemName = feature.getProperty('NAME');
-            } else if ((zoneType == "FeederMS") || (zoneType == "FeederHS")) {
+            } else if ((zoneType == "FeederMS") || (zoneType == "FeederHS") || (zoneType == "Elementary")) {
                 itemName = feature.getProperty('SCHOOLNAME');
             }
-            // console.log("  itemName: " + itemName);
+            nameString += itemName + ", ";
 
             // ======= traverse geometry paths for each feature =======
             feature.getGeometry().getArray().forEach(function(path) {
@@ -639,6 +643,7 @@ function initApp() {
             feature.setProperty('itemName', itemName);
 
         });
+        // console.log("  nameString: " + nameString);
 
         // ======= colorize each feature based on colorList =======
         map.data.setStyle(function(feature) {
@@ -724,12 +729,14 @@ function initApp() {
                 console.log("");
                 console.log("--- select feeder ---");
                 var whichFeeder = event.feature.getProperty('SCHOOLNAME');
-                displayObject.dataFiltersArray[0][1] = whichFeeder;
-                mapDataObject.whichGeography = ["Feeder", whichFeeder];
                 var menuObject = filterMenu[zoneType];
                 menuObject.value = whichFeeder;
+                displayObject.dataFiltersArray[0][1] = whichFeeder;
+                mapDataObject.whichGeography = ["Feeder", whichFeeder];
                 var selectedFeeder = $("#" + zoneType);
                 $(selectedFeeder).text(whichFeeder);
+                console.log("zoneType: ", zoneType);
+                console.log("whichFeeder: ", whichFeeder);
                 console.log("displayObject.dataFiltersArray: ", displayObject.dataFiltersArray);
 
                 // == bounds: rectangle surrounding geo area
@@ -742,7 +749,6 @@ function initApp() {
         this.mapListenersArray.push(zoneMouseover);
         this.mapListenersArray.push(zoneMouseout);
         this.mapListenersArray.push(zoneMouseClick);
-        console.log("  zoneMouseover: ", zoneMouseover);
 
 
         // ======= ======= ======= zoomToZone ======= ======= =======
@@ -794,6 +800,7 @@ function initApp() {
             nextSchool = nextSchoolData.schoolName;
             nextSchoolCode = nextSchoolData.schoolCode;
             nextSchoolType = nextSchoolData.schoolAgency;
+            nextSchoolAddress = nextSchoolData.schoolAddress;
             nextLat = nextSchoolData.schoolLAT;
             nextLng = nextSchoolData.schoolLON;
             schoolLoc = new google.maps.LatLng(nextLat, nextLng);
@@ -826,6 +833,7 @@ function initApp() {
                     title: nextSchool,
                     schoolName: nextSchool,
                     schoolCode: nextSchoolCode,
+                    schoolAddress: nextSchoolAddress,
                     schoolIndex: i
                 });
 
@@ -855,13 +863,12 @@ function initApp() {
         // ======= mouseover event listener =======
         google.maps.event.addListener(schoolMarker, 'mouseover', function (event) {
         // var schoolMouseover = schoolMarker.addListener('mouseover', function(event) {
-            console.log("--- mouseover ---");
+            // console.log("--- mouseover ---");
             var schoolName = this.schoolName;
             var schoolCode = this.schoolCode;
             var schoolIndex = this.schoolIndex;
+            var schoolAddress = this.schoolAddress;
             var schoolLoc = this.position;
-            console.log("  this.position: ", this.position);
-            console.log("  this.schoolCode: ", this.schoolCode);
 
             var overlay = new google.maps.OverlayView();
             overlay.draw = function() {};
@@ -871,8 +878,8 @@ function initApp() {
                 var pixel = projection.fromLatLngToContainerPixel(schoolLoc);
                 var locX = parseInt(pixel.x + 5);
                 var locY = parseInt(pixel.y + 115);
-                makeTooltip(schoolCode, locX, locY);
-                showInfo(schoolName);
+                makeTooltip(schoolName, locX, locY);
+                showInfo(schoolName + "<br>" + schoolAddress);
             };
         });
 
@@ -1170,6 +1177,9 @@ function initApp() {
             case "FeederMS":
                 url = "Data_Geo/School_Attendance_Zones_Middle_School.geojson";
                 break;
+            case "Elementary":
+                url = "Data_Geo/School_Attendance_Zones_Elementary.geojson";
+                break;
             case "Quadrant":
                 url = "Data_Geo/DC_Quadrants.geojson";
                 break;
@@ -1231,7 +1241,7 @@ function initApp() {
         google.maps.event.clearListeners(map, 'mouseout');
         google.maps.event.clearListeners(map, 'click');
 
-        console.log("  listeners_before: ", mapDataObject.mapListenersArray.length);
+        // console.log("  listeners_before: ", mapDataObject.mapListenersArray.length);
         var mapListenersArray = mapDataObject.mapListenersArray;
         if (mapListenersArray.length > 0) {
             for (var i = 0; i < mapListenersArray.length; i++) {
@@ -1239,14 +1249,14 @@ function initApp() {
             }
         }
         mapDataObject.mapListenersArray = [];
-        console.log("  listeners_after: ", mapDataObject.mapListenersArray.length);
+        // console.log("  listeners_after: ", mapDataObject.mapListenersArray.length);
     }
 
     // ======= ======= ======= removeMarkers ======= ======= =======
     function removeMarkers() {
         console.log("removeMarkers");
 
-        console.log("  markers_before: ", mapDataObject.schoolMarkersArray.length);
+        // console.log("  markers_before: ", mapDataObject.schoolMarkersArray.length);
         var schoolMarkersArray = mapDataObject.schoolMarkersArray;
         if (schoolMarkersArray) {
             for(i = 0; i < schoolMarkersArray.length; i++){
@@ -1255,7 +1265,7 @@ function initApp() {
             }
         }
         mapDataObject.schoolMarkersArray = [];
-        console.log("  markers_after: ", mapDataObject.schoolMarkersArray.length);
+        // console.log("  markers_after: ", mapDataObject.schoolMarkersArray.length);
     }
 
     // ======= ======= ======= makeTooltip ======= ======= =======
