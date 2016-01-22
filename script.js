@@ -444,10 +444,16 @@ function initApp() {
 
         if (GeoTypeFilter) {
             var checkGeoType = GeoTypeFilter;
-            var geoSuffix = " " + checkGeoType.substring(checkGeoType.length - 2, checkGeoType.length);
-            console.log("  geoSuffix: ", geoSuffix);
-            if (GeoFilter) {
-                var checkGeo = filterMenu[GeoTypeFilter].value + geoSuffix;
+            if ((GeoTypeFilter == "FeederHS") || (GeoTypeFilter == "FeederMS")) {
+                var geoSuffix = " " + checkGeoType.substring(checkGeoType.length - 2, checkGeoType.length);
+                console.log("  geoSuffix: ", geoSuffix);
+                if (GeoFilter) {
+                    var checkGeo = filterMenu[GeoTypeFilter].value + geoSuffix;
+                }
+            } else {
+                if (GeoFilter) {
+                    var checkGeo = filterMenu[GeoTypeFilter].value;
+                }
             }
         }
         if (LevelFilter) {
@@ -494,6 +500,7 @@ function initApp() {
 
                 filterSelectArray = [null, null, null];
                 nextSchool = jsonData[i];
+                school = nextSchool.School;
                 schoolCode = nextSchool.SCHOOLCODE;
                 schoolWard = nextSchool.WARD;
                 schoolFeederMS = nextSchool.FeederMS;
@@ -515,7 +522,11 @@ function initApp() {
                                 filterSelectArray[0] = true;
                             }
                         } else if (checkGeoType == "FeederHS") {
-                            if (checkGeo == schoolFeederHS) {
+                            // console.log("-- school: ", school);
+                            // console.log("  checkGeo: ", checkGeo);
+                            // console.log("  FeederHS: ", schoolFeederHS);
+                            if (checkGeo === schoolFeederHS) {
+                                console.log("  *** HS match ");
                                 filterSelectArray[0] = true;
                             }
                         }
@@ -523,7 +534,10 @@ function initApp() {
                 }
 
                 if (checkLevel) {
-                    if (checkLevel == schoolLevel) {
+                    var checkLevelString = schoolLevel.indexOf(checkLevel);
+                    console.log("  checkLevelString: ", checkLevelString);
+                    if ((checkLevel == schoolLevel) || (checkLevelString > -1)) {
+                        console.log("  *** level match ");
                         filterSelectArray[1] = true;
                     }
                 } else {
@@ -536,6 +550,7 @@ function initApp() {
                 } else {
                     filterSelectArray[2] = true;
                 }
+                console.log("  filterSelectArray: ", filterSelectArray);
 
                 for (var j = 0; j < filterSelectArray.length; j++) {
                     nextFilter = filterSelectArray[j];
@@ -553,8 +568,22 @@ function initApp() {
             console.log("  selectedCodesArray: ", selectedCodesArray);
 
             // == build zone and data layers on map
-            self.makeSchoolsMap(selectedDataArray);
-            // self.makeZoneMap(geoJsonData, featureArray, whichZoneType);
+            if (selectedDataArray.length > 0) {
+                $("#info").css("display", "block");
+                infoText = "<p>" + selectedDataArray.length + " schools match selected filters.</p>";
+                $("#infoText").html(infoText);
+                self.makeSchoolsMap(selectedDataArray);
+            } else {
+                if (checkGeoType == "Ward") {
+                    infoText = "<p>No schools at selected level in selected ward</p>";
+                } else if ((checkGeoType == "FeederMS") || (checkGeoType == "FeederHS")) {
+                    infoText = "<p>No schools at selected level in selected feeder zone</p>";
+                } else {
+                    infoText = "<p>No geography filter selected</p>";
+                }
+                $("#info").css("display", "block");
+                $("#infoText").html(infoText);
+            }
 
         // == errors/fails
         }).fail(function(){
@@ -804,6 +833,7 @@ function initApp() {
             nextLat = nextSchoolData.schoolLAT;
             nextLng = nextSchoolData.schoolLON;
             schoolLoc = new google.maps.LatLng(nextLat, nextLng);
+            console.log("  nextSchoolCode: ", nextSchoolCode);
 
             // == set color of school circle
             if (nextSchoolType == "DCPS") {
