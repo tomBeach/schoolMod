@@ -688,7 +688,7 @@ function initApp() {
         console.log("\n----- makeChloropleth -----");
 
         // == get data to load on markers
-        var counter = 0;
+        var missingDataCounter = 0;
         var aggregatedExpend = 0;
         var missingDataString = "";
 
@@ -713,7 +713,6 @@ function initApp() {
 
         // == traverse selected data to build colored map
         for (var i = 0; i < selectedDataArray.length; i++) {
-            counter++;
             nextSchoolData = selectedDataArray[i];
             // console.log("  nextSchoolData.schoolCode_1: " + nextSchoolData.schoolCode);
             // console.log("  nextSchoolData.schoolWard: " + nextSchoolData.schoolWard);
@@ -764,7 +763,12 @@ function initApp() {
                 aggregatedExpend = currentExpend + nextSchoolExpend;
                 this.zoneDataArray[schoolZoneIndex] = aggregatedExpend
             } else {
-                missingDataString += nextSchoolData.schoolCode + " ";
+                missingDataCounter++;
+                if (missingDataCounter == 5) {
+                    missingDataString += " ...";
+                } else if (missingDataCounter < 5){
+                    missingDataString += nextSchoolData.schoolCode + " ";
+                }
             }
             console.log("  schoolZoneIndex: " + schoolZoneIndex);
             console.log("  nextSchoolExpend: " + nextSchoolExpend);
@@ -773,7 +777,7 @@ function initApp() {
 
         if (missingDataString != "") {
             $("#info").css("display", "block");
-            infoText = "<p>These schools did not have expenditures in selected category: " + missingDataString + "</p>";
+            infoText = "<p>Some schools did not have expenditures in selected category: " + missingDataString + "</p>";
             $("#infoText").html(infoText);
         }
 
