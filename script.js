@@ -932,6 +932,7 @@ function initApp() {
                     feature.setProperty('itemColor', fillColors[colorIndex]);
                 }
             }
+            console.log("  feature.getProperty('itemColor'): ", feature.getProperty('itemColor'));
 
         });
 
@@ -1285,12 +1286,12 @@ function initApp() {
 
         // == restore original style to clicked zone
         var feature = map.get('clickedZone');
-        var nextColor = feature.getProperty('itemColor');
-        map.data.overrideStyle(feature, {
-            fillColor: nextColor,
-            fillOpacity: 0.5,
-            strokeWeight: 1
-        });
+        // var nextColor = feature.getProperty('itemColor');
+        // map.data.overrideStyle(feature, {
+        //     fillColor: nextColor,
+        //     fillOpacity: 0.5,
+        //     strokeWeight: 1
+        // });
     }
 
 
