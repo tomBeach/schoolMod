@@ -123,59 +123,6 @@ function initApp() {
 
 
 
-    // ======= ======= ======= makeMapLegend ======= ======= =======
-    Display.prototype.makeMapLegend = function(dataMax, dataIncrement) {
-        console.log("makeMapLegend");
-
-        var colorRange = displayObject.zoneGeojson.features.length;
-        var scaleFactor = getScaleFactor(dataMax)[0];
-        var scaleLabel = getScaleFactor(dataMax)[1];
-        var nextMin = 0;
-        var nextMax = 0;
-        var nextColor;
-
-        var htmlString = "<table id='legend'>";
-        htmlString += "<tr><th class='amount'>data</th><th class='values'>color</th></tr>";
-
-        for (var i = 0; i < colorRange; i++) {
-            nextMin = nextMax;
-            nextMax += parseInt(dataIncrement);
-            var minString = (nextMin/scaleFactor).toFixed(1).toString() + scaleLabel;
-            var maxString =( nextMax/scaleFactor).toFixed(1).toString() + scaleLabel;
-            htmlString += "<tr><td class='minMaxCol'><p class='minMax'>" + minString + " - " + maxString + "</p></td>";
-            htmlString += "<td class='colorChipCol'><div id='colorChip" + i + "' class='colorChip'>&nbsp;</div></td></tr>";
-        }
-        htmlString += "</table>";
-        $("#mapLegend").empty();
-        $("#mapLegend").append(htmlString);
-
-        for (var i = 0; i < colorRange; i++) {
-            nextChip = $("#colorChip" + i);
-            nextColor = dataColors[i];
-            $("#colorChip" + i).css("background-color", nextColor);
-        }
-
-
-        // ======= ======= ======= getScaleFactor ======= ======= =======
-        function getScaleFactor(dataMax) {
-            console.log("getScaleFactor");
-            if (dataMax > 1000000) {
-                scaleFactor = 1000000;
-                scaleLabel = "M$";
-            } else if ((dataMax < 1000000) && (dataMax > 1000)) {
-                scaleFactor = 1000;
-                scaleLabel = "K$";
-            } else {
-                scaleFactor = 1;
-                scaleLabel = "$";
-            }
-            return [scaleFactor, scaleLabel];
-        }
-
-    }
-
-
-
     // ======= ======= ======= initFilterMenus ======= ======= =======
     Display.prototype.initFilterMenus = function() {
         console.log("initFilterMenus");
@@ -264,6 +211,57 @@ function initApp() {
         this.activateFilterRelease(selectedFilterElement);
     }
 
+    // ======= ======= ======= makeMapLegend ======= ======= =======
+    Display.prototype.makeMapLegend = function(dataMax, dataIncrement) {
+        console.log("makeMapLegend");
+
+        var colorRange = displayObject.zoneGeojson.features.length;
+        var scaleFactor = getScaleFactor(dataMax)[0];
+        var scaleLabel = getScaleFactor(dataMax)[1];
+        var nextMin = 0;
+        var nextMax = 0;
+        var nextColor;
+
+        var htmlString = "<table id='legend'>";
+        htmlString += "<tr><th class='amount'>data</th><th class='values'>color</th></tr>";
+
+        for (var i = 0; i < colorRange; i++) {
+            nextMin = nextMax;
+            nextMax += parseInt(dataIncrement);
+            var minString = (nextMin/scaleFactor).toFixed(1).toString() + scaleLabel;
+            var maxString =( nextMax/scaleFactor).toFixed(1).toString() + scaleLabel;
+            htmlString += "<tr><td class='minMaxCol'><p class='minMax'>" + minString + " - " + maxString + "</p></td>";
+            htmlString += "<td class='colorChipCol'><div id='colorChip" + i + "' class='colorChip'>&nbsp;</div></td></tr>";
+        }
+        htmlString += "</table>";
+        $("#mapLegend").empty();
+        $("#mapLegend").append(htmlString);
+
+        for (var i = 0; i < colorRange; i++) {
+            nextChip = $("#colorChip" + i);
+            nextColor = dataColors[i];
+            $("#colorChip" + i).css("background-color", nextColor);
+        }
+
+
+        // ======= ======= ======= getScaleFactor ======= ======= =======
+        function getScaleFactor(dataMax) {
+            console.log("getScaleFactor");
+            if (dataMax > 1000000) {
+                scaleFactor = 1000000;
+                scaleLabel = "M$";
+            } else if ((dataMax < 1000000) && (dataMax > 1000)) {
+                scaleFactor = 1000;
+                scaleLabel = "K$";
+            } else {
+                scaleFactor = 1;
+                scaleLabel = "$";
+            }
+            return [scaleFactor, scaleLabel];
+        }
+
+    }
+
     // ======= ======= ======= activateFilterSelect ======= ======= =======
     Display.prototype.activateFilterSelect = function(nextItem) {
         console.log("activateFilterSelect");
@@ -346,34 +344,32 @@ function initApp() {
             if (whichFilter == "geography") {
 
                 // == clear only specific zone selected
-                // if (self.dataFiltersArray[0][1]) {
-                //     $("#chart").css("display", "none");
-                    restoreGeoMenu(selectedFilterElement, event);
-                //
-                // // == clear zoneType and specific zone
-                // } else {
-                    console.log("  self.dataFiltersArray[0][1]: ", self.dataFiltersArray[0][1]);
-                    categoryList = ["levels", "agency", "expenditures", "students"];
-                    self.dataFiltersArray[0] = [null, null];
-                    nextMenu = self.geographyMenu;
-                    prevClass = "geography-set";
-                    restoreFilterMenu(nextMenu);
+                restoreGeoMenu(selectedFilterElement, event);
 
-                    // == clear all other filters and hide info window when geography filter is reset
-                    for (var i = 1; i < self.dataFiltersArray.length; i++) {
-                        nextFilter = self.dataFiltersArray[i];
-                        nextCategory = categoryList[i - 1];
-                        if (nextFilter != null) {
-                            clearFilterMenus(nextCategory);
-                        }
+                // == clear zoneType and specific zone
+                console.log("  self.dataFiltersArray[0][1]: ", self.dataFiltersArray[0][1]);
+                categoryList = ["levels", "agency", "expenditures", "students"];
+                self.dataFiltersArray[0] = [null, null];
+                nextMenu = self.geographyMenu;
+                prevClass = "geography-set";
+                restoreFilterMenu(nextMenu);
+
+                // == clear all other filters and hide info window when geography filter is reset
+                for (var i = 1; i < self.dataFiltersArray.length; i++) {
+                    nextFilter = self.dataFiltersArray[i];
+                    nextCategory = categoryList[i - 1];
+                    if (nextFilter != null) {
+                        clearFilterMenus(nextCategory);
                     }
-                    mapDataObject.makeDataMap("Quadrant");
-                    $("#info").css("display", "none");
-                    $("#chart").css("display", "none");
-                // }
+                }
+                mapDataObject.makeDataMap("Quadrant");
+                $("#info").css("display", "none");
+                $("#chart").css("display", "none");
+                $("#mapLegend").css("display", "none");
 
             } else if ((whichFilter == "levels") || (whichFilter == "agency")) {
                 $("#chart").css("display", "none");
+                $("#mapLegend").css("display", "none");
                 infoText = "Make another filter selection.";
                 updateInfoText(infoText);
                 clearFilterMenus(whichFilter);
@@ -662,7 +658,7 @@ function initApp() {
                     infoText = "Selected Elementary school had no available data.";
                 }
 
-                // ======= update info box (matching schools found) ======
+            // ======= update info box (matching schools found) ======
             } else {
                 if (selectedDataArray.length > 0) {
                     infoText = selectedDataArray.length + " schools match selected filters.";
@@ -673,16 +669,6 @@ function initApp() {
                     if (checkExpend) {
                         self.makeDataDisplay(selectedDataArray);
                     }
-
-
-                    // // ======= data coded map ======
-                    // if (checkExpend) {
-                    //     self.makeDataDisplay(selectedDataArray);
-                    //
-                    // // ======= makeSchoolLayer ======
-                    // } else {
-                    //     self.makeSchoolLayer(selectedDataArray, checkExpend);
-                    // }
 
                 // ======= update info box (no matching schools) ======
                 } else {
@@ -700,7 +686,7 @@ function initApp() {
                         if (checkGeoType == null) {
                             infoText = "Please select a geography zone.";
                         } else {
-                            infoText = "Expenditure data by " + checkGeoType + ".";
+                            infoText = "No schools matched filters in " + checkGeo + " zone.";
                         }
                     }
                     updateInfoText(infoText);
