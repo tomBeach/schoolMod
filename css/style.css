@@ -112,6 +112,20 @@ h3 {
     z-index: 9;
 }
 
+/* ======= chart window ======= */
+#chart {
+    display:none;
+    width:360px;
+    height:360px;
+    position:absolute;
+    top:300px;
+    left:60%;
+    box-shadow: 6px 6px 5px #888888;
+    border-radius: 6px 6px 2px 2px;
+    background-color: rgba(255, 255, 255, 0.9);
+    z-index:99;
+}
+
 /* ======= filter window ======= */
 #smoke {
     display:none;
@@ -129,9 +143,9 @@ h3 {
     position:absolute;
     top:60px;
     left:60%;
-    z-index:9999;
     box-shadow: 6px 6px 5px #888888;
     border-radius: 6px 6px 2px 2px;
+    z-index:999;
 }
 #info {
     display: none;
@@ -141,9 +155,9 @@ h3 {
     position:absolute;
     top:500px;
     left:5%;
-    z-index:9999;
     box-shadow: 6px 6px 5px #888888;
     border-radius: 6px 6px 2px 2px;
+    z-index:999;
 }
 #infoText > p {
     margin: 10px 8px;

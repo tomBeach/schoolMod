@@ -292,11 +292,12 @@ function initApp() {
             if (whichFilter == "geography") {
 
                 // == clear only specific zone selected
-                if (self.dataFiltersArray[0][1]) {
+                // if (self.dataFiltersArray[0][1]) {
+                //     $("#chart").css("display", "none");
                     restoreGeoMenu(selectedFilterElement, event);
-
-                // == clear zoneType and specific zone
-                } else {
+                //
+                // // == clear zoneType and specific zone
+                // } else {
                     console.log("  self.dataFiltersArray[0][1]: ", self.dataFiltersArray[0][1]);
                     categoryList = ["levels", "agency", "expenditures", "students"];
                     self.dataFiltersArray[0] = [null, null];
@@ -314,7 +315,14 @@ function initApp() {
                     }
                     mapDataObject.makeDataMap("Quadrant");
                     $("#info").css("display", "none");
-                }
+                    $("#chart").css("display", "none");
+                // }
+
+            } else if ((whichFilter == "levels") || (whichFilter == "agency")) {
+                $("#chart").css("display", "none");
+                infoText = "Make another filter selection.";
+                updateInfoText(infoText);
+                clearFilterMenus(whichFilter);
             } else {
                 infoText = "Make another filter selection.";
                 updateInfoText(infoText);
@@ -607,13 +615,20 @@ function initApp() {
                     updateInfoText(infoText);
 
                     // ======= data coded map ======
+                    self.makeSchoolLayer(selectedDataArray, checkExpend);
                     if (checkExpend) {
                         self.makeDataDisplay(selectedDataArray);
-
-                    // ======= makeSchoolLayer ======
-                    } else {
-                        self.makeSchoolLayer(selectedDataArray, checkExpend);
                     }
+
+
+                    // // ======= data coded map ======
+                    // if (checkExpend) {
+                    //     self.makeDataDisplay(selectedDataArray);
+                    //
+                    // // ======= makeSchoolLayer ======
+                    // } else {
+                    //     self.makeSchoolLayer(selectedDataArray, checkExpend);
+                    // }
 
                 // ======= update info box (no matching schools) ======
                 } else {
@@ -771,36 +786,40 @@ function initApp() {
                         nextExpendValue = nextSchoolData.EngLang;
                         break;
                 }
+                console.log("  nextExpendValue: " + nextExpendValue);
                 nextSchoolName = nextSchoolData.schoolName;
                 nextSchoolObject.schoolName = nextSchoolName;
-                nextSchoolObject.schoolExpenditure = nextExpendValue;
+                if ((nextExpendValue == null) || (nextExpendValue == "NA") || (nextExpendValue == "")) {
+                    console.log("  nextExpendValue2: " + nextExpendValue);
+                    missingDataCounter++;
+                    if (missingDataCounter == 3) {
+                        missingDataString += " ...";
+                    } else if (missingDataCounter < 3){
+                        missingDataString += nextSchoolData.schoolCode + " ";
+                    }
+                    nextExpendValue = 0;
+                }
+                nextSchoolObject.schoolExpenditure = parseInt(nextExpendValue);
                 dataValuesArray.push(nextSchoolObject);
-                console.log("  nextSchoolObject.schoolExpenditure: " + nextSchoolObject.schoolExpenditure);
             }
         }
 
         // ======= no specific zone selected; make chloropleth =======
         if (!GeoFilter) {
-            if (missingDataString != "") {
-                infoText = "Some schools did not have expenditures in selected category: " + missingDataString + ".";
-                updateInfoText(infoText);
-            }
 
             // ======= make data-colorized zone layer =======
             this.makeZoneLayer(GeoTypeFilter, checkExpend);
-            // makeSchoolsChart(schoolDataArray);
 
         // ======= specific zone selected; make bar chart =======
         } else {
-            // var dataValuestring = JSON.stringify(dataValuesArray);
-            // var selectedDataString = JSON.stringify(selectedDataArray);
-            // console.log("  dataValuesArray: " + dataValuesArray);
-            // console.log("  dataValuestring: " + dataValuestring);
-            // console.log("  selectedDataString: " + selectedDataString);
 
-            console.log("  dataValuesArray[0]: " + dataValuesArray[0]);
-            console.log("  dataValuesArray[0].schoolExpenditure: " + dataValuesArray[0].schoolExpenditure);
             makeSchoolsChart(dataValuesArray);
+        }
+
+        if (missingDataString != "") {
+            // infoText = "Some schools did not have expenditures in selected category: " + missingDataString + ".";
+            infoText = "Some schools did not have expenditures in selected category.";
+            updateInfoText(infoText);
         }
     }
 
@@ -1081,6 +1100,7 @@ function initApp() {
         var schoolMarkersArray = [];
         var missingSchoolData = "";
         var schoolCounter = 0;
+        var colorIndex = -1;
         var infoFlag = false;
         var schoolMarker;
         console.log("  GeoTypeFilter: ", GeoTypeFilter);
@@ -1106,12 +1126,21 @@ function initApp() {
             // console.log("  nextSchoolCode: ", nextSchoolCode);
 
             // == set color of school circle
-            if (nextSchoolType == "DCPS") {
-                fillColor = "red";
+            if (checkExpend) {
+                colorIndex++;
+                if (colorIndex == fillColors.length) {
+                    colorIndex = 0;
+                }
+                fillColor = fillColors[colorIndex];
                 strokeColor = "maroon";
             } else {
-                fillColor = "orange";
-                strokeColor = "crimson ";
+                if (nextSchoolType == "DCPS") {
+                    fillColor = "red";
+                    strokeColor = "maroon";
+                } else {
+                    fillColor = "orange";
+                    strokeColor = "crimson ";
+                }
             }
 
             // == indicate missing info if required
