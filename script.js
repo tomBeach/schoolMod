@@ -26,7 +26,7 @@ function initApp() {
         filterMenu = new Menu("filterMenu");
 
         // == Ward, FeederMS, FeederHS, Quadrant
-        filterMenu.Ward = { id:"Ward", category:"geography", text:"Ward", column:"WARD", value:null };
+        filterMenu.Ward = { id:"Ward", category:"geography", text:"Wards", column:"WARD", value:null };
         filterMenu.FeederHS = { id:"FeederHS", category:"geography", text:"High School Feeders", column:"FeederHS", value:null };
         filterMenu.FeederMS = { id:"FeederMS", category:"geography", text:"Middle School Feeders", column:"FeederMS", value:null };
         filterMenu.Elementary = { id:"Elementary", category:"geography", text:"Elementary Zones", column:null, value:null };
@@ -50,8 +50,8 @@ function initApp() {
         filterMenu.spendPast = { id:"spendPast", category:"expenditures", text:"Past Spending", column:"MajorExp9815", value:null };
         filterMenu.spendLifetime = { id:"spendLifetime", category:"expenditures", text:"Total Spending", column:"LifetimeBudget", value:null };
         filterMenu.spendPlanned = { id:"spendPlanned", category:"expenditures", text:"Planned Spending", column:"TotalAllotandPlan1621", value:null };
-        filterMenu.spendSqFt = { id:"spendSqFt", category:"expenditures", text:"$ per Sq Ft", column:"SpentPerSqFt", value:null };
-        filterMenu.spendEnroll = { id:"spendEnroll", category:"expenditures", text:"$ per Student", column:"SpentPerEnroll", value:null };
+        filterMenu.spendSqFt = { id:"spendSqFt", category:"expenditures", text:"Current/SqFt", column:"SpentPerSqFt", value:null };
+        filterMenu.spendEnroll = { id:"spendEnroll", category:"expenditures", text:"Current/Student", column:"SpentPerEnroll", value:null };
 
         // == Enrollment, AtRisk, SpecEd, EngLang
         filterMenu.Enrollment = { id:"Enrollment", category:"students", text:"percent Enrolled", column:"Total_Enrolled", value:null };
@@ -119,6 +119,60 @@ function initApp() {
     // ======= ======= ======= ======= ======= DISPLAY ======= ======= ======= ======= =======
     // ======= ======= ======= ======= ======= DISPLAY ======= ======= ======= ======= =======
     // ======= ======= ======= ======= ======= DISPLAY ======= ======= ======= ======= =======
+
+
+
+
+    // ======= ======= ======= makeMapLegend ======= ======= =======
+    Display.prototype.makeMapLegend = function(dataMax, dataIncrement) {
+        console.log("makeMapLegend");
+
+        var colorRange = displayObject.zoneGeojson.features.length;
+        var scaleFactor = getScaleFactor(dataMax)[0];
+        var scaleLabel = getScaleFactor(dataMax)[1];
+        var nextMin = 0;
+        var nextMax = 0;
+        var nextColor;
+
+        var htmlString = "<table id='legend'>";
+        htmlString += "<tr><th class='amount'>data</th><th class='values'>color</th></tr>";
+
+        for (var i = 0; i < colorRange; i++) {
+            nextMin = nextMax;
+            nextMax += parseInt(dataIncrement);
+            var minString = (nextMin/scaleFactor).toFixed(1).toString() + scaleLabel;
+            var maxString =( nextMax/scaleFactor).toFixed(1).toString() + scaleLabel;
+            htmlString += "<tr><td class='minMaxCol'><p class='minMax'>" + minString + " - " + maxString + "</p></td>";
+            htmlString += "<td class='colorChipCol'><div id='colorChip" + i + "' class='colorChip'>&nbsp;</div></td></tr>";
+        }
+        htmlString += "</table>";
+        $("#mapLegend").empty();
+        $("#mapLegend").append(htmlString);
+
+        for (var i = 0; i < colorRange; i++) {
+            nextChip = $("#colorChip" + i);
+            nextColor = dataColors[i];
+            $("#colorChip" + i).css("background-color", nextColor);
+        }
+
+
+        // ======= ======= ======= getScaleFactor ======= ======= =======
+        function getScaleFactor(dataMax) {
+            console.log("getScaleFactor");
+            if (dataMax > 1000000) {
+                scaleFactor = 1000000;
+                scaleLabel = "M$";
+            } else if ((dataMax < 1000000) && (dataMax > 1000)) {
+                scaleFactor = 1000;
+                scaleLabel = "K$";
+            } else {
+                scaleFactor = 1;
+                scaleLabel = "$";
+            }
+            return [scaleFactor, scaleLabel];
+        }
+
+    }
 
 
 
@@ -747,9 +801,9 @@ function initApp() {
                         missingDataString += nextSchoolData.schoolCode + " ";
                     }
                 }
-                console.log("  schoolZoneIndex: " + schoolZoneIndex);
-                console.log("  nextSchoolExpend: " + nextSchoolExpend);
-                console.log("  this.zoneDataArray: " + this.zoneDataArray);
+                // console.log("  schoolZoneIndex: " + schoolZoneIndex);
+                // console.log("  nextSchoolExpend: " + nextSchoolExpend);
+                // console.log("  this.zoneDataArray: " + this.zoneDataArray);
 
             // == plot data on bar graph
             } else {
@@ -845,11 +899,15 @@ function initApp() {
         // ======= calculate data buckets =======
         console.log("  this.zoneDataArray: ", this.zoneDataArray);
         if (checkExpend) {
+            var fillOpacity = 1;
             var maxValue = Math.max.apply(Math, self.zoneDataArray);
             var minValue = Math.min.apply(Math, self.zoneDataArray);
             var zoneCount = self.zoneDataArray.length;
-            var bucketIncrement = (maxValue - minValue)/zoneCount;
-            // console.log("  bucketIncrement: ", bucketIncrement);
+            var bucketIncrement = maxValue/zoneCount;
+            displayObject.makeMapLegend(maxValue, bucketIncrement);
+            $("#mapLegend").css("display", "block");
+        } else {
+            var fillOpacity = 0.5;
         }
 
         // ======= add geojson layer =======
@@ -932,7 +990,6 @@ function initApp() {
                     feature.setProperty('itemColor', fillColors[colorIndex]);
                 }
             }
-            console.log("  feature.getProperty('itemColor'): ", feature.getProperty('itemColor'));
 
         });
 
@@ -942,7 +999,7 @@ function initApp() {
             // console.log("  nextColor: ", nextColor);
             return {
               fillColor: nextColor,
-              fillOpacity: 0.5,
+              fillOpacity: fillOpacity,
               strokeColor: "purple",
               strokeWeight: 1
             };
@@ -1041,9 +1098,9 @@ function initApp() {
                 console.log("  menuObject.value: ", menuObject.value);
 
                 zoomToZone(event);
-                if (menuObject.value) {
-                    self.getSchoolData("Elementary");
-                }
+                // if (menuObject.value) {
+                //     self.getSchoolData("Elementary");
+                // }
             });
         }
 
