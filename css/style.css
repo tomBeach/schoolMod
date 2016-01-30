@@ -45,18 +45,23 @@ hr {
     border: 1px solid rgba(86,61,124,.2);*/
 }
 
-/* ======= labels ======= */
+/* ======= title ======= */
 .page-title > h1 {
     display: block;
     margin: 10px;
     text-align: left;
     color: black;
 }
-#filters-title {
-    width: 50%;
-    height: auto;
+
+/* ======= filters ======= */
+.banner {
+    height: 40px;
     padding-left: 20px;
     border: solid 2px #eee;
+}
+#filters-title {
+    width: 50%;
+    float: left;
 }
 #filters-title > h2 {
     display: block;
@@ -76,6 +81,30 @@ hr {
 .filterLabel {
     font-style: normal;
     color: red;
+}
+
+/* ======= clear ======= */
+#clear-button {
+    position: absolute;
+    display: none;
+    height: 38px;
+    width: 60px;
+    left: 54%;
+    box-shadow: 4px 4px 4px #555;
+    border-radius: 6px 6px 6px 6px;
+    background-color: darkviolet;
+    border: solid 2px darkslateblue;
+}
+.btn-text {
+    line-height: 38px;
+    margin-left: 11px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    color: white;
+}
+#clear-button:hover {
+    background-color: mediumpurple ;
 }
 
 /* ======= mapCol ======= */
@@ -112,7 +141,7 @@ hr {
     height: auto;
     position: absolute;
     top: 60px;
-    left: 60%;
+    left: 65%;
     background-color: #fff2e5;
     box-shadow: 4px 4px 4px #555;
     border-radius: 6px 6px 2px 2px;
