@@ -83,10 +83,21 @@ hr {
     color: red;
 }
 
-/* ======= clear ======= */
-#clear-button {
+/* ======= buttons ======= */
+#zone-school-button {
     position: absolute;
     display: none;
+    height: 38px;
+    width: 80px;
+    left: 53%;
+    box-shadow: 4px 4px 4px #555;
+    border-radius: 6px 6px 6px 6px;
+    background-color: darkviolet;
+    border: solid 2px darkslateblue;
+}
+#clear-button {
+    position: absolute;
+    display: block;
     height: 38px;
     width: 60px;
     left: 54%;
@@ -104,6 +115,9 @@ hr {
     color: white;
 }
 #clear-button:hover {
+    background-color: mediumpurple ;
+}
+#zone-school-button:hover {
     background-color: mediumpurple ;
 }
 

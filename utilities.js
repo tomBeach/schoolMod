@@ -65,13 +65,47 @@ function assignDataColors(zonesCollectionObj, featureIndex) {
     // console.log("assignDataColors");
 
     var nextExpendValue = zonesCollectionObj.zoneDataArray[featureIndex];
-    for (var i = 0; i < zonesCollectionObj.zoneDataArray.length; i++) {
-        if (((zonesCollectionObj.dataIncrement * i) < nextExpendValue) && (nextExpendValue < (zonesCollectionObj.dataIncrement * (i + 1)))) {
+    // console.log("  nextExpendValue: ", nextExpendValue);
+    // console.log("  zonesCollectionObj.dataIncrement: ", zonesCollectionObj.dataIncrement);
+    for (var i = 0; i < zonesCollectionObj.dataBins; i++) {
+        binMin = (zonesCollectionObj.dataIncrement * i);
+        binMax = (zonesCollectionObj.dataIncrement * (i + 1));
+        if ((binMin <= nextExpendValue) && (nextExpendValue < binMax)) {
             colorIndex = i;
             break;
         }
     }
     return colorIndex;
+}
+
+
+// ======= ======= ======= processSchoolName ======= ======= =======
+function processSchoolName(schoolName) {
+    // console.log("processSchoolName");
+
+    var shortName;
+
+    shortName = schoolName.replace("Elementary School", "");
+    shortName = shortName.replace("Education Campus", "");
+    shortName = shortName.replace("ES", "");
+
+    checkName1 = shortName.indexOf(", ");
+    if (checkName1 > -1) {
+        splitZoneName = shortName.split(", ");
+        shortName = splitZoneName[0];
+    }
+    checkName2 = shortName.indexOf(". ");
+    if (checkName2 > -1) {
+        splitZoneName = shortName.split(". ");
+        shortName = splitZoneName[1];
+    }
+    checkName3 = shortName.indexOf(" ");
+    if (checkName3 > -1) {
+        if (checkName3 == (shortName.length - 1)) {
+            shortName = shortName.substring(0, (shortName.length - 1));
+        }
+    }
+    return shortName;
 }
 
 // ======= ======= ======= getZoneIndex ======= ======= =======
@@ -84,21 +118,29 @@ function getZoneIndex(zonesCollectionObj, schoolData) {
     switch(zonesCollectionObj.zoneType) {
         case "FeederHS":
             nextSchoolZone = schoolData.schoolFeederHS;
+            zoneSuffix = " " + zonesCollectionObj.zoneType.substring(zonesCollectionObj.zoneType.length - 2, zonesCollectionObj.zoneType.length);
             break;
         case "FeederMS":
             nextSchoolZone = schoolData.schoolFeederMS;
+            zoneSuffix = " " + zonesCollectionObj.zoneType.substring(zonesCollectionObj.zoneType.length - 2, zonesCollectionObj.zoneType.length);
+            break;
+        case "Elementary":
+            nextSchoolZone = processSchoolName(schoolData.schoolName);
+            zoneSuffix = "";
             break;
         case "Ward":
             nextSchoolZone = schoolData.schoolWard;
+            zoneSuffix = "";
             break;
     }
 
-    // == school zones from csv file have HS or MS suffuxes
-    zoneSuffix = " " + zonesCollectionObj.zoneType.substring(zonesCollectionObj.zoneType.length - 2, zonesCollectionObj.zoneType.length);
-
     // == search zoneNamesArray for match with current school zone
     for (var j = 0; j < zonesCollectionObj.zoneNamesArray.length; j++) {
-        checkZoneName = zonesCollectionObj.zoneNamesArray[j] + zoneSuffix;
+        if (zonesCollectionObj.zoneType == "Elementary") {
+            checkZoneName = zonesCollectionObj.zoneNamesArray[j];
+        } else {
+            checkZoneName = zonesCollectionObj.zoneNamesArray[j] + zoneSuffix;
+        }
         if (nextSchoolZone == checkZoneName) {
             schoolZoneIndex = j;
             break;
@@ -225,11 +267,19 @@ function makeZoneGeometry(feature) {
 }
 
 // ======= ======= ======= makeSchoolProfile ======= ======= =======
-function makeSchoolProfile(schoolsCollectionObj, schoolIndex) {
+function makeSchoolProfile(collectionOrSchool, schoolIndex) {
     console.log("makeSchoolProfile");
+    console.log("  schoolIndex: ", schoolIndex);
+    console.log("  (typeof schoolIndex === 'undefined'): ", (typeof schoolIndex === 'undefined'));
 
-    var selectedSchoolData = schoolsCollectionObj.selectedSchoolsArray[schoolIndex];
-    var cleanedSchoolData = validateSchoolData(selectedSchoolData);
+    if (typeof schoolIndex === 'undefined') {
+        console.log("*** TRUE ***");
+        var processdSchoolData = getDataDetails(collectionOrSchool);
+        var cleanedSchoolData = validateSchoolData(processdSchoolData);
+    } else {
+        var selectedSchoolData = collectionOrSchool.selectedSchoolsArray[schoolIndex];
+        var cleanedSchoolData = validateSchoolData(selectedSchoolData);
+    }
 
     // school data: schoolCode, schoolName, schoolWard, schoolFeederMS, schoolFeederHS, schoolAddress, schoolLAT, schoolLON, schoolLevel:, schoolAgency
     // building data: schoolSqft, schoolMaxOccupancy, schoolSqFtPerEnroll
@@ -267,8 +317,15 @@ function makeSchoolProfile(schoolsCollectionObj, schoolIndex) {
     htmlString += "</table>";
 
     // == remove previous profile html if any
-    $("#profile").remove();
-    $("#mouseover-text").append(htmlString);
+    if ($('#mouseover-text').find('table').length) {
+        $("#profile").remove();
+        $("#mouseover-text").append(htmlString);
+    } else {
+        $("#mouseover-text").append(htmlString);
+        $("#profile").fadeIn( "fast", function() {
+            console.log("*** FADEIN ***");
+        });
+    }
 }
 
 // ======= ======= ======= validateSchoolData ======= ======= =======
@@ -331,7 +388,6 @@ function makeMapLegend(zonesCollectionObj) {
     console.log("makeMapLegend");
 
     var dataMax = Math.max.apply(Math, zonesCollectionObj.zoneDataArray);
-    var colorRange = zonesCollectionObj.zoneGeojson.features.length;
     var scaleLabels = getScaleFactor(dataMax)
     var scaleFactor = scaleLabels[0];
     var scaleLabel = scaleLabels[1];
@@ -339,28 +395,30 @@ function makeMapLegend(zonesCollectionObj) {
     var nextMax = 0;
     var nextColor;
 
+    // == remove previous legend html if any
+    $("#mapLegend").remove();
+    // $("#mouseover-text").children("h2").empty();
+
     // == make legend html for color chips
-    var htmlString = "<table id='mapLegend'>";
-    htmlString += "<tr><th class='amount'>data</th><th class='values'>color</th></tr>";
-    for (var i = 0; i < colorRange; i++) {
+    var tableString = "";
+    tableString += "<table id='mapLegend'>";
+    tableString += "<tr><th class='amount'>data</th><th class='values'>color</th></tr>";
+    for (var i = 0; i < zonesCollectionObj.dataBins; i++) {
         nextMin = nextMax;
         nextMax += parseInt(zonesCollectionObj.dataIncrement);
         var minString = (nextMin/scaleFactor).toFixed(1).toString() + scaleLabel;
         var maxString =( nextMax/scaleFactor).toFixed(1).toString() + scaleLabel;
-        htmlString += "<tr><td class='minMaxCol'><p class='minMax'>" + minString + " - " + maxString + "</p></td>";
-        htmlString += "<td class='colorChipCol'><div id='colorChip" + i + "' class='colorChip'>&nbsp;</div></td></tr>";
+        tableString += "<tr><td class='minMaxCol'><p class='minMax'>" + minString + " - " + maxString + "</p></td>";
+        tableString += "<td class='colorChipCol'><div id='colorChip" + i + "' class='colorChip'>&nbsp;</div></td></tr>";
     }
-    htmlString += "</table>";
-
-    // == remove previous legend html if any
-    $("#mapLegend").remove();
+    tableString += "</table>";
 
     // $("#mouseover-text").children("h2").children("table").remove();
-    $("#mouseover-text").append(htmlString);
+    $("#mouseover-text").append(tableString);
     // $("#legend").css("display", "block");
 
     // == set colors on color chips
-    for (var i = 0; i < colorRange; i++) {
+    for (var i = 0; i < zonesCollectionObj.dataBins; i++) {
         nextChip = $("#colorChip" + i);
         nextColor = zonesCollectionObj.dataColorsArray[i];
         $("#colorChip" + i).css("background-color", nextColor);
@@ -384,14 +442,15 @@ function getScaleFactor(dataMax) {
 }
 
 // ======= ======= ======= calcDataIncrement ======= ======= =======
-function calcDataIncrement(zonesCollectionObj) {
+function calcDataIncrement(zonesCollectionObj, displayObj) {
     console.log("calcDataIncrement");
 
     var fillOpacity = 1;
     var maxValue = Math.max.apply(Math, zonesCollectionObj.zoneDataArray);
     var minValue = Math.min.apply(Math, zonesCollectionObj.zoneDataArray);
-    var zoneCount = zonesCollectionObj.zoneDataArray.length;
-    var dataIncrement = maxValue/zoneCount;
+    // var zoneCount = zonesCollectionObj.zoneDataArray.length;
+    // var dataIncrement = maxValue/zoneCount;
+    var dataIncrement = maxValue/zonesCollectionObj.dataBins;
     return dataIncrement;
 }
 
