@@ -38,47 +38,6 @@ function setZoneMode(zoneFilter, expendFilter, selectedZone) {
     return zoneMode;
 }
 
-// ======= ======= ======= setZoneColor ======= ======= =======
-function setZoneColor(zonesCollectionObj, displayObj, featureIndex, colorIndex, zoneName) {
-    // console.log("setZoneColor");
-
-    // == get color based on current zoneMode
-    if (zonesCollectionObj.zoneMode == "selected") {
-        if (zoneName == displayObj.dataFilters.selectedZone) {
-            itemColor = zonesCollectionObj.indexColorsArray[featureIndex];
-        } else {
-            itemColor = "white";
-        }
-    } else if (zonesCollectionObj.zoneMode == "gradient") {
-        colorIndex = assignDataColors(zonesCollectionObj, featureIndex);
-        itemColor = zonesCollectionObj.dataColorsArray[colorIndex];
-    } else if (zonesCollectionObj.zoneMode == "indexed") {
-        itemColor = "white";
-    } else if (zonesCollectionObj.zoneMode == "default") {
-        itemColor = "white";
-    }
-    return itemColor;
-}
-
-// ======= ======= ======= assignDataColors ======= ======= =======
-function assignDataColors(zonesCollectionObj, featureIndex) {
-    // console.log("assignDataColors");
-
-    var nextExpendValue = zonesCollectionObj.zoneDataArray[featureIndex];
-    // console.log("  nextExpendValue: ", nextExpendValue);
-    // console.log("  zonesCollectionObj.dataIncrement: ", zonesCollectionObj.dataIncrement);
-    for (var i = 0; i < zonesCollectionObj.dataBins; i++) {
-        binMin = (zonesCollectionObj.dataIncrement * i);
-        binMax = (zonesCollectionObj.dataIncrement * (i + 1));
-        if ((binMin <= nextExpendValue) && (nextExpendValue < binMax)) {
-            colorIndex = i;
-            break;
-        }
-    }
-    return colorIndex;
-}
-
-
 // ======= ======= ======= processSchoolName ======= ======= =======
 function processSchoolName(schoolName) {
     // console.log("processSchoolName");
@@ -147,51 +106,6 @@ function getZoneIndex(zonesCollectionObj, schoolData) {
         }
     }
     return schoolZoneIndex;
-}
-
-// ======= ======= ======= aggregateZoneData ======= ======= =======
-function aggregateZoneData(zonesCollectionObj, displayObj, schoolData) {
-    // console.log("aggregateZoneData");
-
-    var schoolZoneIndex = getZoneIndex(zonesCollectionObj, schoolData);
-
-    // == identify column holding selected expend data
-    nextSchoolExpend = parseInt(schoolData[displayObj.dataFilters.expend]);
-    // console.log("  nextSchoolExpend: ", nextSchoolExpend);
-    if (Number.isInteger(nextSchoolExpend)) {
-        currentExpend = zonesCollectionObj.zoneDataArray[schoolZoneIndex];
-        aggregatedExpend = currentExpend + nextSchoolExpend;
-        zonesCollectionObj.zoneDataArray[schoolZoneIndex] = aggregatedExpend
-    }
-}
-
-// ======= ======= ======= clearZoneAggregator ======= ======= =======
-function clearZoneAggregator(zonesCollectionObj) {
-    console.log("clearZoneAggregator");
-
-    for (var i = 0; i < zonesCollectionObj.zoneDataArray.length; i++) {
-        zonesCollectionObj.zoneDataArray[i] = 0;
-    }
-}
-
-// ======= ======= ======= makeZoneAggregator ======= ======= =======
-function makeZoneAggregator(zonesCollectionObj) {
-    console.log("makeZoneAggregator");
-
-    zonesCollectionObj.zoneNamesArray = [];
-    zonesCollectionObj.zoneDataArray = [];
-    if (zonesCollectionObj.zoneGeojson) {
-        for (var i = 0; i < zonesCollectionObj.zoneGeojson.features.length; i++) {
-            nextZoneName = zonesCollectionObj.zoneGeojson.features[i].properties.NAME;
-            splitZoneName = nextZoneName.split(", ");
-            nextZoneName = splitZoneName[0];
-            zonesCollectionObj.zoneNamesArray.push(nextZoneName);
-            zonesCollectionObj.zoneDataArray.push(0);
-        }
-    } else {
-        console.log("ERROR: no geojson data");
-    }
-    console.log("  aggregator", zonesCollectionObj.zoneDataArray);
 }
 
 // ======= ======= ======= removeMarkers ======= ======= =======
@@ -383,6 +297,7 @@ function validateSchoolData(selectedSchoolData) {
 
     return selectedSchoolData;
 }
+
 // ======= ======= ======= makeMapLegend ======= ======= =======
 function makeMapLegend(zonesCollectionObj) {
     console.log("makeMapLegend");
@@ -450,8 +365,93 @@ function calcDataIncrement(zonesCollectionObj, displayObj) {
     var minValue = Math.min.apply(Math, zonesCollectionObj.zoneDataArray);
     // var zoneCount = zonesCollectionObj.zoneDataArray.length;
     // var dataIncrement = maxValue/zoneCount;
-    var dataIncrement = maxValue/zonesCollectionObj.dataBins;
+    var dataIncrement = (maxValue - minValue)/zonesCollectionObj.dataBins;
     return dataIncrement;
+}
+
+// ======= ======= ======= aggregateZoneData ======= ======= =======
+function aggregateZoneData(zonesCollectionObj, displayObj, schoolData) {
+    // console.log("aggregateZoneData");
+
+    var schoolZoneIndex = getZoneIndex(zonesCollectionObj, schoolData);
+
+    // == identify column holding selected expend data
+    nextSchoolExpend = parseInt(schoolData[displayObj.dataFilters.expend]);
+    // console.log("  nextSchoolExpend: ", nextSchoolExpend);
+    if (Number.isInteger(nextSchoolExpend)) {
+        currentExpend = zonesCollectionObj.zoneDataArray[schoolZoneIndex];
+        aggregatedExpend = currentExpend + nextSchoolExpend;
+        zonesCollectionObj.zoneDataArray[schoolZoneIndex] = aggregatedExpend
+    }
+}
+
+// ======= ======= ======= clearZoneAggregator ======= ======= =======
+function clearZoneAggregator(zonesCollectionObj) {
+    console.log("clearZoneAggregator");
+
+    for (var i = 0; i < zonesCollectionObj.zoneDataArray.length; i++) {
+        zonesCollectionObj.zoneDataArray[i] = 0;
+    }
+}
+
+// ======= ======= ======= makeZoneAggregator ======= ======= =======
+function makeZoneAggregator(zonesCollectionObj) {
+    console.log("makeZoneAggregator");
+
+    zonesCollectionObj.zoneNamesArray = [];
+    zonesCollectionObj.zoneDataArray = [];
+    if (zonesCollectionObj.zoneGeojson) {
+        for (var i = 0; i < zonesCollectionObj.zoneGeojson.features.length; i++) {
+            nextZoneName = zonesCollectionObj.zoneGeojson.features[i].properties.NAME;
+            splitZoneName = nextZoneName.split(", ");
+            nextZoneName = splitZoneName[0];
+            zonesCollectionObj.zoneNamesArray.push(nextZoneName);
+            zonesCollectionObj.zoneDataArray.push(0);
+        }
+    } else {
+        console.log("ERROR: no geojson data");
+    }
+    console.log("  aggregator", zonesCollectionObj.zoneDataArray);
+}
+
+// ======= ======= ======= setZoneColor ======= ======= =======
+function setZoneColor(zonesCollectionObj, displayObj, featureIndex, colorIndex, zoneName) {
+    // console.log("setZoneColor");
+
+    // == get color based on current zoneMode
+    if (zonesCollectionObj.zoneMode == "selected") {
+        if (zoneName == displayObj.dataFilters.selectedZone) {
+            itemColor = zonesCollectionObj.indexColorsArray[featureIndex];
+        } else {
+            itemColor = "white";
+        }
+    } else if (zonesCollectionObj.zoneMode == "gradient") {
+        colorIndex = assignDataColors(zonesCollectionObj, featureIndex);
+        itemColor = zonesCollectionObj.dataColorsArray[colorIndex];
+    } else if (zonesCollectionObj.zoneMode == "indexed") {
+        itemColor = "white";
+    } else if (zonesCollectionObj.zoneMode == "default") {
+        itemColor = "white";
+    }
+    return itemColor;
+}
+
+// ======= ======= ======= assignDataColors ======= ======= =======
+function assignDataColors(zonesCollectionObj, featureIndex) {
+    // console.log("assignDataColors");
+
+    var nextExpendValue = zonesCollectionObj.zoneDataArray[featureIndex];
+    // console.log("  nextExpendValue: ", nextExpendValue);
+    // console.log("  zonesCollectionObj.dataIncrement: ", zonesCollectionObj.dataIncrement);
+    for (var i = 0; i < zonesCollectionObj.dataBins; i++) {
+        binMin = (zonesCollectionObj.dataIncrement * i);
+        binMax = (zonesCollectionObj.dataIncrement * (i + 1));
+        if ((binMin <= nextExpendValue) && (nextExpendValue <= binMax)) {
+            colorIndex = i;
+            break;
+        }
+    }
+    return colorIndex;
 }
 
 // ======= ======= ======= getZoneUrl ======= ======= =======

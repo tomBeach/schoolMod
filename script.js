@@ -680,7 +680,7 @@ function initApp() {
             // ======= make map layers ======
             if (selectedDataArray.length > 0) {
                 zonesCollectionObj.makeZoneLayer();
-                if (zonesCollectionObj.zoneMode != "selected") {
+                if ((zonesCollectionObj.zoneMode == "default") || (zonesCollectionObj.zoneMode == "indexed")) {
                     zonesCollectionObj.activateZoneListeners();
 
                 // == activate school Listeners
@@ -1004,6 +1004,9 @@ function initApp() {
             if (zonesCollectionObj.zoneMode == "default") {
                 fillColor = "#eee";
                 strokeColor = "gray";
+            } else if (zonesCollectionObj.zoneMode == "gradient") {
+                fillColor = "mediumpurple";
+                strokeColor = "maroon";
             } else {
                 if (nextSchoolType == "DCPS") {
                     fillColor = "red";
@@ -1049,8 +1052,10 @@ function initApp() {
                 this.schoolMarkersArray.push(schoolMarker);
 
                 // == activate marker mouseover/mouseout
-                if ((this.schoolMode == "selected") || (this.schoolMode == "default")) {
-                    this.activateSchoolMarker(schoolMarker);
+                if (zonesCollectionObj.zoneMode != "gradient") {
+                    if ((this.schoolMode == "selected") || (this.schoolMode == "default")) {
+                        this.activateSchoolMarker(schoolMarker);
+                    }
                 }
             }
         }
