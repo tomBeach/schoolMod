@@ -19,13 +19,18 @@
 // ======= ======= ======= ======= ======= UTILITIES ======= ======= ======= ======= =======
 
 // ======= ======= ======= setZoneMode ======= ======= =======
-function setZoneMode(zoneFilter, expendFilter, selectedZone) {
+function setZoneMode(zoneFilter, expendFilter, levelsFilter, selectedZone) {
     console.log("setZoneMode");
 
     // selected, gradient, indexed, default
     var zoneMode;
-    if ((selectedZone) && (!expendFilter)) {
+    if ((levelsFilter) && (!selectedZone) && (!expendFilter)) {
+        zoneMode = "default";
+        // zoneMode = "levels";
+    } else if ((selectedZone) && (!expendFilter)) {
         zoneMode = "selected";
+    } else if ((selectedZone) && (expendFilter)) {
+        zoneMode = "barchart";
     } else if ((!selectedZone) && (expendFilter)) {
         zoneMode = "gradient";
     } else if ((zoneFilter) && (!selectedZone) && (!expendFilter)) {
@@ -151,6 +156,7 @@ function getZoneIndex(zonesCollectionObj, schoolData) {
 function aggregateZoneData(zonesCollectionObj, displayObj, schoolData) {
     // console.log("aggregateZoneData");
 
+    // == match school name from geojson file with school name from csv file
     var schoolZoneIndex = getZoneIndex(zonesCollectionObj, schoolData);
 
     // == identify column holding selected expend data
@@ -160,6 +166,21 @@ function aggregateZoneData(zonesCollectionObj, displayObj, schoolData) {
         currentExpend = zonesCollectionObj.zoneDataArray[schoolZoneIndex];
         aggregatedExpend = currentExpend + nextSchoolExpend;
         zonesCollectionObj.zoneDataArray[schoolZoneIndex] = aggregatedExpend
+    }
+}
+
+// ======= ======= ======= aggregateSchoolData ======= ======= =======
+function aggregateSchoolData(schoolsCollectionObj, displayObj, schoolData, schoolIndex) {
+    console.log("aggregateSchoolData");
+
+    // == identify column holding selected expend data
+    nextSchoolName = schoolData.schoolName;
+    nextSchoolExpend = parseInt(schoolData[displayObj.dataFilters.expend]);
+    if (Number.isInteger(nextSchoolExpend)) {
+        currentExpend = schoolsCollectionObj.selectedDataArray[schoolIndex];
+        aggregatedExpend = currentExpend + nextSchoolExpend;
+        schoolsCollectionObj.selectedNamesArray[schoolIndex] = nextSchoolName;
+        schoolsCollectionObj.selectedDataArray[schoolIndex] = aggregatedExpend;
     }
 }
 
@@ -192,6 +213,25 @@ function makeZoneAggregator(zonesCollectionObj) {
     console.log("  aggregator", zonesCollectionObj.zoneDataArray);
 }
 
+// ======= ======= ======= makeSchoolsAggregator ======= ======= =======
+function makeSchoolsAggregator(schoolsCollectionObj) {
+    console.log("makeSchoolsAggregator");
+
+    schoolsCollectionObj.selectedNamesArray = [];
+    schoolsCollectionObj.selectedDataArray = [];
+    if (schoolsCollectionObj.selectedSchoolsArray) {
+        for (var i = 0; i < schoolsCollectionObj.selectedSchoolsArray.length; i++) {
+            nextSchoolName = schoolsCollectionObj.selectedSchoolsArray[i].schoolName;
+            splitSchoolName = nextSchoolName.split(", ");
+            nextSchoolName = splitSchoolName[0];
+            schoolsCollectionObj.selectedNamesArray.push(nextSchoolName);
+            schoolsCollectionObj.selectedDataArray.push(0);
+        }
+    } else {
+        console.log("ERROR: no json data");
+    }
+}
+
 // ======= ======= ======= removeMarkers ======= ======= =======
 function removeMarkers(schoolsCollectionObj) {
     console.log("removeMarkers");
@@ -211,7 +251,6 @@ function removeMarkers(schoolsCollectionObj) {
 // ======= ======= ======= de_activateZoneListeners ======= ======= =======
 function de_activateZoneListeners(zonesCollectionObj) {
     console.log("de_activateZoneListeners");
-    console.log("  zonesCollectionObj.mapListenersArray: ", zonesCollectionObj.mapListenersArray);
 
     google.maps.event.clearListeners(map, 'mouseover');
     google.maps.event.clearListeners(map, 'mouseout');
@@ -264,6 +303,29 @@ function makeZoneGeometry(feature) {
     return centerLatLng;
 }
 
+// ======= ======= ======= makeChartDisplay ======= ======= =======
+function makeChartDisplay() {
+    console.log("makeChartDisplay");
+
+    var chartHtml = "<div id='chart-container'>";
+    chartHtml += "<div id='chart-title' class='title_bar'><p>data chart</p></div>";
+    chartHtml += "<div id='chart'></div></div>";
+
+    // == remove previous profile or chart html if any
+    if ($('#mouseover-text').find('table').length) {
+        $("#profile").remove();
+    }
+    if ($('#mouseover-text').find('#chart-container').length) {
+        $("#chart-container").remove();
+    }
+    $("#mouseover-text").append(chartHtml);
+    $("#chart-container").fadeIn( "fast", function() {
+        console.log("*** FADEIN ***");
+    });
+}
+
+
+
 // ======= ======= ======= makeSchoolProfile ======= ======= =======
 function makeSchoolProfile(collectionOrSchool, schoolIndex) {
     console.log("makeSchoolProfile");
@@ -315,7 +377,11 @@ function makeSchoolProfile(collectionOrSchool, schoolIndex) {
     htmlString += "</table>";
 
     // == remove previous profile html if any
+    if ($('#mouseover-text').find('#chart-container').length) {
+        $("#chart-container").remove();
+    }
     if ($('#mouseover-text').find('table').length) {
+        console.log("*** TABLE PRESENT ***");
         $("#profile").remove();
         $("#mouseover-text").append(htmlString);
     } else {
@@ -386,6 +452,10 @@ function makeMapLegend(zonesCollectionObj) {
     console.log("makeMapLegend");
 
     var dataMax = Math.max.apply(Math, zonesCollectionObj.zoneDataArray);
+    var dataMin = Math.min.apply(Math, zonesCollectionObj.zoneDataArray);
+    console.log("  .zoneDataArray: ", zonesCollectionObj.zoneDataArray);
+    console.log("  dataMax: ", dataMax);
+    console.log("  dataMin: ", dataMin);
     var scaleLabels = getScaleFactor(dataMax)
     var scaleFactor = scaleLabels[0];
     var scaleLabel = scaleLabels[1];
@@ -428,10 +498,10 @@ function getScaleFactor(dataMax) {
     console.log("getScaleFactor");
     if (dataMax > 1000000) {
         scaleFactor = 1000000;
-        scaleLabel = "M$";
+        scaleLabel = "$M ";
     } else if ((dataMax < 1000000) && (dataMax > 1000)) {
         scaleFactor = 1000;
-        scaleLabel = "K$";
+        scaleLabel = "$K ";
     } else {
         scaleFactor = 1;
         scaleLabel = "$";
@@ -497,8 +567,22 @@ function updateHoverText(itemName) {
     // console.log("  $(filterTitleContainer).css(): ", $(filterTitleContainer).css());
     var filterText = $(filterTitleContainer).text();
     if (itemName) {
-        $("#mouseover-text").children("h2").css("visibility", "visible");
-        $(filterTitleContainer).text(itemName);
+        if (itemName.length > 35) {
+            var checkName = itemName.indexOf(", ");
+            if (checkName > -1) {
+                splitZoneName = itemName.split(", ");
+                if (splitZoneName.length > 2) {
+                    itemName = splitZoneName[0] + ", " + splitZoneName[1] + "...";
+                } else {
+                    itemName = splitZoneName[0];
+                }
+            }
+            if (itemName.length > 35) {
+                itemName = itemName.substring(0, 35);
+            }
+        }
+            $("#mouseover-text").children("h2").css("visibility", "visible");
+            $(filterTitleContainer).text(itemName);
     } else {
         $("#mouseover-text").children("h2").css("visibility", "hidden");
         $(filterTitleContainer).text("&nbsp;");
