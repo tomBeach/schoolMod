@@ -210,6 +210,7 @@ function makeZoneAggregator(zonesCollectionObj) {
     } else {
         console.log("ERROR: no geojson data");
     }
+    console.log("  aggregator.length", zonesCollectionObj.zoneDataArray.length);
     console.log("  aggregator", zonesCollectionObj.zoneDataArray);
 }
 

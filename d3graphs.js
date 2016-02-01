@@ -11,7 +11,6 @@ function makeZoneSchoolsChart(dataObjectsArray) {
     var chartW, chartH, shortName, scaleFactor, scaleLabel;
     var myJsonString = JSON.stringify(dataObjectsArray);
     var fillColors = ["green", "red", "orange", "purple", "salmon", "blue", "yellow", "tomato", "darkkhaki", "goldenrod", "blueviolet", "chartreuse", "cornflowerblue"];
-    console.log("  myJsonString: ", myJsonString);
 
     // ======= chart formatting =======
     var chartPadding = {top: 10, right: 20, bottom: 80, left: 60},
@@ -29,7 +28,7 @@ function makeZoneSchoolsChart(dataObjectsArray) {
         //     scaleFactor = 1;
         //     scaleLabel = "$";
         // }
-        // return d.schoolExpenditure / scaleFactor;
+        // return d.expend / scaleFactor;
         return d.expend;
     });
 

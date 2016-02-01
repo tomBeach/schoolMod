@@ -71,7 +71,8 @@ function initApp() {
         this.agencyMenu = ["agency", filterMenu.District, filterMenu.Charter];
         this.expendMenu = ["expend", filterMenu.spendPast, filterMenu.spendLifetime, filterMenu.spendPlanned, filterMenu.spendSqFt, filterMenu.spendEnroll];
         this.studentsMenu = ["students", filterMenu.Enrollment, filterMenu.AtRisk, filterMenu.SpecEd, filterMenu.EngLang];
-        this.filterMenusArray = [this.zoneMenu, this.expendMenu, this.levelsMenu, this.agencyMenu, this.studentsMenu];
+        // this.filterMenusArray = [this.zoneMenu, this.expendMenu, this.levelsMenu, this.agencyMenu, this.studentsMenu];
+        this.filterMenusArray = [this.zoneMenu, this.expendMenu];
         this.filterTitlesArray = [];
         this.categoryLabels = ["zone", "spending", "school type", "district/charter", "students"];
         this.groupLabels = ["where", "what", "who", "&nbsp;", "&nbsp;"];
@@ -311,18 +312,20 @@ function initApp() {
             self.dataFilters.selectedZone = null;
             self.dataFilters.selectedSchool = null;
 
-            if ($('#mouseover-text').find('table').length) {
-                $("#profile").fadeOut( "slow", function() {
-                    console.log("*** FADEOUT ***");
-                    $("#profile").remove();
-                });
-            }
-            if ($('#mouseover-text').find('#chart-container').length) {
-                $("#chart-container").fadeOut( "slow", function() {
-                    console.log("*** FADEOUT ***");
-                    $("#chart-container").remove();
-                });
-            }
+            clearProfieChart();
+
+            // if ($('#mouseover-text').find('table').length) {
+            //     $("#profile").fadeOut( "slow", function() {
+            //         console.log("*** FADEOUT ***");
+            //         $("#profile").remove();
+            //     });
+            // }
+            // if ($('#mouseover-text').find('#chart-container').length) {
+            //     $("#chart-container").fadeOut( "slow", function() {
+            //         console.log("*** FADEOUT ***");
+            //         $("#chart-container").remove();
+            //     });
+            // }
 
             // == clear filter window
             filterText = "your filters";
@@ -332,6 +335,24 @@ function initApp() {
             updateHoverText(null);
             zonesCollectionObj.getZoneData();
         });
+    }
+
+    // ======= ======= ======= clearProfieChart ======= ======= =======
+    function clearProfieChart() {
+        console.log("clearProfieChart");
+
+        if ($('#mouseover-text').find('table').length) {
+            $("#profile").fadeOut( "slow", function() {
+                console.log("*** FADEOUT ***");
+                $("#profile").remove();
+            });
+        }
+        if ($('#mouseover-text').find('#chart-container').length) {
+            $("#chart-container").fadeOut( "slow", function() {
+                console.log("*** FADEOUT ***");
+                $("#chart-container").remove();
+            });
+        }
     }
 
     // ======= ======= ======= findSearchSchool ======= ======= =======
@@ -629,6 +650,7 @@ function initApp() {
                 schoolLevel = nextSchool.Level;
 
                 selectSchool = self.checkFilterMatch(school, schoolWard, schoolFeederMS, schoolFeederHS, schoolAgency, schoolLevel);
+                // console.log("  zonesCollectionObj.zoneMode: ", zonesCollectionObj.zoneMode);
 
                 // == build array of schools that match filters
                 if (selectSchool) {
@@ -658,6 +680,9 @@ function initApp() {
                     console.log("  self.selectedDataArray: ", self.selectedDataArray);
                 }
                 self.makeSchoolLayer();
+            } else {
+                updateFilterTitles("Sorry, no schools matched criteria.  Click CLEAR");
+                clearProfieChart();
             }
 
         // == errors/fails
@@ -690,7 +715,10 @@ function initApp() {
                 }
             } else if (zonesCollectionObj.zoneType == "FeederMS") {
                 zoneSuffix = " " + "FeederMS".substring("FeederMS".length - 2, "FeederMS".length);
+                // console.log("  schoolFeederMS: ", schoolFeederMS);
+                // console.log("  .selectedZone: ", displayObj.dataFilters.selectedZone + zoneSuffix);
                 if (schoolFeederMS == displayObj.dataFilters.selectedZone + zoneSuffix) {
+                    console.log("******* MATCH *******");
                     var zoneMatch = true;
                 }
             } else if (zonesCollectionObj.zoneType == "Elementary") {
