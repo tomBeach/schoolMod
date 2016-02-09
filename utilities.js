@@ -28,7 +28,7 @@ function getZoneUrl(displayObj) {
     } else {
         selector = displayObj.dataFilters.levels;
     }
-    console.log("  displayObj.dataFilters.zones || levels: ", selector);
+    console.log("  .zones || levels: ", selector);
 
     var url;
 
@@ -36,10 +36,16 @@ function getZoneUrl(displayObj) {
         case "Ward":
             url = "Data_Geo/Ward__2012.geojson";
             break;
-        case "HS" || "FeederHS":
+        case "HS":
+            url = "Data_Geo/School_Attendance_Zones_Senior_High__New.geojson";
+            break;
+        case  "FeederHS":
             url = "Data_Geo/School_Attendance_Zones_Senior_High__New.geojson";
             break;
         case "MS":
+            url = "Data_Geo/School_Attendance_Zones_Middle_School__New.geojson";
+            break;
+        case "FeederMS":
             url = "Data_Geo/School_Attendance_Zones_Middle_School__New.geojson";
             break;
         case "ES":
@@ -197,13 +203,13 @@ function updateHoverText(itemName, schoolType) {
             if (checkName > -1) {
                 splitZoneName = itemName.split(", ");
                 if (splitZoneName.length > 2) {
-                    itemName = splitZoneName[0] + ", " + splitZoneName[1] + "...";
+                    itemName = splitZoneName[0] + ", " + splitZoneName[1];
                 } else {
                     itemName = splitZoneName[0];
                 }
             }
             if (itemName.length > 35) {
-                itemName = itemName.substring(0, 35);
+                itemName = itemName.substring(0, 32) + "...";
             }
         }
         $("#mouseover-text").children("h2").css("visibility", "visible");
@@ -336,7 +342,7 @@ function clearZoneAggregator(zonesCollectionObj) {
 
     for (var i = 0; i < zonesCollectionObj.aggregatorArray.length; i++) {
         zonesCollectionObj.aggregatorArray[i].zoneValue = 0;
-        zonesCollectionObj.aggregatorArray[i].zoneIndex = null;
+        // zonesCollectionObj.aggregatorArray[i].zoneIndex = null;
     }
 }
 
@@ -344,41 +350,75 @@ function clearZoneAggregator(zonesCollectionObj) {
 function aggregateZoneData(zonesCollectionObj, displayObj, schoolData, masterIndex) {
     console.log("aggregateZoneData");
 
-    var schoolWard = nextZoneIndex = schoolZoneIndex = nextSchoolExpend = currentExpend = aggregatedExpend = 0;
-    var nextZone = null;
+    var schoolWard = nextZoneIndex = nextSchoolExpend = currentExpend = aggregatedExpend = 0;
+    var nextZone = schoolZoneIndex = null;
+    console.log("  .schoolFeederHS: ", schoolData.schoolFeederHS);
+    // console.log("  .schoolFeederMS: ", schoolData.schoolFeederMS);
 
     // == match school name from geojson file with school name from csv file
-    if (zonesCollectionObj.zoneType == "Ward") {
-        schoolWard = schoolData.schoolWard;
-        // console.log("  schoolWard: ", schoolWard);
+    if (displayObj.dataFilters.zones) {
         for (var i = 0; i < zonesCollectionObj.aggregatorArray.length; i++) {
             nextZone = zonesCollectionObj.aggregatorArray[i].zoneName;
-            // == extract ward number from ward name
-            nextZoneIndex = nextZone.split(" ")[1];
-            if (nextZoneIndex == schoolWard) {
-                schoolZoneIndex = i;
-                // console.log("  schoolZoneIndex: ", schoolZoneIndex);
-                break;
+            // console.log("  nextZone: ", nextZone);
+            if (displayObj.dataFilters.zones == "Ward") {
+                schoolWard = schoolData.schoolWard;
+                nextZoneIndex = nextZone.split(" ")[1];
+                if (nextZoneIndex == schoolWard) {
+                    schoolZoneIndex = i;
+                    break;
+                }
+            } else if (displayObj.dataFilters.zones == "FeederHS") {
+                schoolFeederHS = schoolData.schoolFeederHS;
+                if ((schoolFeederHS == "NA") || (schoolFeederHS == null)) {
+                    // console.log("******* no FeederHS data");
+                    schoolZoneIndex = null;
+                } else {
+                    rootFeederHS = schoolFeederHS.split(" ")[0];
+                    // console.log("  rootFeederHS: ", rootFeederHS);
+                    if (nextZone == rootFeederHS) {
+                        schoolZoneIndex = i;
+                        // console.log("******* schoolZoneIndex: ", schoolZoneIndex);
+                        break;
+                    }
+                }
+            } else if (displayObj.dataFilters.zones == "FeederMS") {
+                schoolFeederMS = schoolData.schoolFeederMS;
+                if ((schoolFeederMS == "NA") || (schoolFeederMS == null)) {
+                    // console.log("******* no FeederMS data");
+                    schoolZoneIndex = null;
+                } else {
+                    rootFeederMS = schoolFeederMS.split(" ")[0];
+                    if (nextZone == rootFeederMS) {
+                        schoolZoneIndex = i;
+                        break;
+                    }
+                }
             }
         }
     }
 
     // == identify column holding selected expend filter data
-    nextSchoolExpend = parseInt(schoolData[displayObj.dataFilters.expend]);
+    if (schoolZoneIndex) {
+        nextSchoolExpend = parseInt(schoolData[displayObj.dataFilters.expend]);
 
-    // == aggregate new value into zone total
-    if (Number.isInteger(nextSchoolExpend)) {
-        currentExpend = zonesCollectionObj.aggregatorArray[schoolZoneIndex].zoneValue;
-        aggregatedExpend = currentExpend + nextSchoolExpend;
-        zonesCollectionObj.aggregatorArray[schoolZoneIndex].zoneValue = aggregatedExpend;
-        zonesCollectionObj.aggregatorArray[schoolZoneIndex].zoneIndex = schoolZoneIndex;
+        // == aggregate new value into zone total
+        if (Number.isInteger(nextSchoolExpend)) {
+            currentExpend = zonesCollectionObj.aggregatorArray[schoolZoneIndex].zoneValue;
+            aggregatedExpend = currentExpend + nextSchoolExpend;
+            zonesCollectionObj.aggregatorArray[schoolZoneIndex].zoneValue = aggregatedExpend;
+            // zonesCollectionObj.aggregatorArray[schoolZoneIndex].zoneIndex = schoolZoneIndex;
+        } else {
+            nextSchoolExpend = 0;
+        }
+        console.log("*** school/index: ", schoolData.schoolName, "/", schoolZoneIndex);
+        console.log("  .zoneIndex: ", zonesCollectionObj.aggregatorArray[schoolZoneIndex].zoneIndex);
+        console.log("  currentExpend: ", currentExpend);
+        console.log("  nextSchoolExpend: ", nextSchoolExpend);
+        console.log("  aggregatedExpend: ", aggregatedExpend);
+        return null;
     } else {
-        nextSchoolExpend = 0;
+        return schoolData.schoolCode;
     }
-    // console.log("*** school/index: ", schoolData.schoolName, "/", schoolZoneIndex);
-    // console.log("  currentExpend: ", currentExpend);
-    // console.log("  nextSchoolExpend: ", nextSchoolExpend);
-    // console.log("  aggregatedExpend: ", aggregatedExpend);
 }
 
 // ======= ======= ======= captureSchoolZone ======= ======= =======
@@ -436,7 +476,7 @@ function setZoneColor(zonesCollectionObj, displayObj, featureIndex, colorIndex, 
     } else {
 
         // == get color if expend filter selected
-        if (displayObj.dataFilters.levels) {
+        if ((displayObj.dataFilters.levels) || (displayObj.dataFilters.zones)) {
             if (displayObj.dataFilters.expend) {
                 colorIndex = assignDataColors(zonesCollectionObj, featureIndex);
                 itemColor = zonesCollectionObj.dataColorsArray[colorIndex];
@@ -850,13 +890,13 @@ function makeSchoolProfile(collectionOrSchool, schoolIndex) {
         if (checkName > -1) {
             splitZoneName = itemName.split(", ");
             if (splitZoneName.length > 2) {
-                itemName = splitZoneName[0] + ", " + splitZoneName[1] + "...";
+                itemName = splitZoneName[0] + ", " + splitZoneName[1];
             } else {
                 itemName = splitZoneName[0];
             }
         }
-        if (itemName.length > 35) {
-            itemName = itemName.substring(0, 35);
+        if (itemName.length > 45) {
+            itemName = itemName.substring(0, 42) + "...";
         }
     }
 
