@@ -1,4 +1,353 @@
 
+// ======= ======= ======= makeRankChart ======= ======= =======
+function makeRankChart(zonesCollectionObj, schoolsCollectionObj, displayObj) {
+    console.log("\n----- makeRankChart -----");
+
+    // ======= chart container =======
+    var chartHtml = "<table id='chart'>";
+    chartHtml += "<tr><td id='chart-title' class='schoolname' colspan=2><p id='expend-text'>data chart</p></td></tr>";
+    chartHtml += "</table>";
+    console.log("  chartHtml: ", chartHtml);
+
+    // var chartHtml = "<div id='chart'>";
+    // chartHtml += "<div id='chart-title' class='schoolname'><p id='expend-text'>data chart</p></div>";
+
+    // == remove previous chart or profile html if any
+    if ($('#profile-container').find('#profile').length) {
+        $("#profile").remove();
+    }
+    if ($('#legend-container').find('#legend').length) {
+        $("#legend").remove();
+    }
+    if ($('#chart-container').find('#chart').length) {
+        console.log("*** chart found ***");
+        $("#chart").remove();
+        $("#chart-container").append(chartHtml);
+    } else {
+        console.log("*** chart NOT found ***");
+        console.log("  chartHtml2: ", chartHtml);
+        $("#chart-container").append(chartHtml);
+        $("#chart-container").fadeIn( "slow", function() {
+            console.log("*** FADEIN chart-container ***");
+        });
+    }
+
+    updateChartText(filterMenu[displayObj.dataFilters.expend].text);
+
+    // ======= formatting variables =======
+    var chartW, chartH, shortName, scaleFactor, scaleLabel;
+    var fillColors = zonesCollectionObj.dataColorsArray;
+
+    // ======= chart formatting =======
+    var chartPadding = {top: 20, right: 10, bottom: 30, left: 80},
+        chartW = 220 - chartPadding.left - chartPadding.right,       // outer width of chart
+        chartH = 300 - chartPadding.top - chartPadding.bottom;      // outer height of chart
+
+    // ======= school data =======
+    var dataObjectsArray = zonesCollectionObj.aggregatorArray;
+    var myJsonString = JSON.stringify(dataObjectsArray);
+    var dataMax = d3.max(dataObjectsArray, function(d) {
+        return d.zoneValue;
+    });
+    console.log("  dataMax: ", dataMax);
+    var dataMin = d3.min(dataObjectsArray, function(d) {
+        return d.zoneValue;
+    });
+    console.log("  dataMin: ", dataMin);
+
+    // ======= bar data =======
+    var barScaleArray = [];
+    var barW = 20;
+    var barTicks = zonesCollectionObj.dataBins;
+    var barIncrement = dataMax/barTicks;
+    var schoolCircleX = 50;
+    var schoolCircleR = 5;
+    for (var i = 1; i < (barTicks + 1); i++) {
+        barScaleArray.push(parseInt(barIncrement * i));
+    }
+    console.log("  barScaleArray: ", barScaleArray);
+
+    // ======= scale formating =======
+    if (dataMax > 1000000) {
+        scaleFactor = 1000000;
+        scaleLabel = "M$";
+    } else if ((dataMax > 10000) && (dataMax < 1000000)) {
+        scaleFactor = 10000;
+        scaleLabel = "10K$";
+    } else if ((dataMax > 1000) && (dataMax < 10000)) {
+        scaleFactor = 1000;
+        scaleLabel = "1K$";
+    } else {
+        scaleFactor = 1;
+        scaleLabel = "$";
+    }
+
+    // ======= X SCALE =======
+    var xScaleLabels = ["scale", "amount", "school"];
+    var xScale = d3.scale.ordinal()         // maps input domain to output range
+        .domain(xScaleLabels.map(function(d) {
+            // console.log("  d: ", d);
+            return d;;
+        }))
+        .range([0, chartW]);
+
+    // ======= Y SCALES =======
+    var yScale = d3.scale.linear()      // maps input domain to output range
+        .domain([0, d3.max(barScaleArray, function(d, i) {
+            // console.log("  d: ", d);
+            return d;
+        })])
+        .range([chartH, 0]);
+
+    var yAxis = d3.svg.axis()
+        .scale(yScale)          // specify left scale
+        .orient("left")
+        // .tickPadding(10)
+        .tickValues(barScaleArray);
+
+    // ======= build svg objects =======
+    // $("#chart").empty();
+    var svg = d3.select("#chart").append("svg")
+        .attr("width", chartW + (chartPadding.left + chartPadding.right))
+        .attr("height", chartH + (chartPadding.top + chartPadding.bottom))
+        .append("g")
+            .attr("transform", "translate(" + chartPadding.left + "," + chartPadding.top + ")");
+
+    // // ======= background =======
+    // svg.append("rect")
+    //     .attr("width", "100%")
+    //     .attr("height", "100%")
+    //     .attr("fill", "pink");
+    //
+    // svg.append("g")
+    //     .attr("transform", "translate(" + (-chartPadding.left) + "," + (-chartPadding.top) + ")");
+
+    // ======= yAxis =======
+    svg.append("g")                 // g group element to contain about-to-be-generated axis elements
+        .attr("class", "yAxis")     // assign class of yAxis to new g element, so we can target it with CSS:
+        .call(yAxis)                // call axis function; generate SVG elements of axis; takes selection as input; hands selection to function
+        .attr("transform", "translate(0, 0)")
+        .selectAll("text")
+            .style("text-anchor", "end")
+            .style("font-size", "10px");
+
+    // ======= rects for bar graph =======
+    svg.selectAll(".bar")
+        .data(barScaleArray)
+        .enter()
+            .append("rect")
+            .attr("class", "bar")
+            .attr("x", function(d) {
+                return 0;
+            })
+            .attr("width", barW)
+            .attr("y", function(d, i) {
+                if (i < (barTicks + 1)) {
+                    return yScale(d);
+                } else {
+                    return null;
+                }
+            })
+            .attr("height", function(d, i) {
+                barH = chartH/barTicks;
+                if (i < (barTicks + 1)) {
+                    return barH;
+                } else {
+                    return 0;
+                }
+            })
+            .style({'fill': function(d, i) {
+                if (i < (barTicks + 1)) {
+                    whichColor = fillColors[i];
+                    return whichColor;
+                } else {
+                    return "white";
+                }
+                }})
+            .style("font-size", "10px");
+
+    // ======= circles for schools =======
+    svg.selectAll("circle")
+        .data(dataObjectsArray)
+        .enter()
+            .append("circle")
+            .attr("id", (function(d, i) {
+                circleId = "dataChartValue_" + d.zoneIndex;
+                return circleId;
+            }))
+            .attr("class", "dataChartValue")
+            .attr("cx", function(d, i) {
+                return schoolCircleX;
+            })
+            .attr("cy", function(d) {
+                return yScale(d.zoneValue);
+            })
+            .attr("r", function(d) {
+                // console.log("  d: ", d);
+                return schoolCircleR;
+            })
+            .style('fill', function(d, i){
+                colorIndex = assignChartColors(d.zoneValue);
+                whichColor = fillColors[colorIndex];
+                return whichColor;
+            });
+
+    // ======= circle labels =======
+    svg.selectAll(".text")
+        .data(dataObjectsArray)
+        .enter()
+            .append("text")
+                .attr("id", (function(d, i) {
+                    labelId = "dataChartLabel_" + i;
+                    return labelId;
+                }))
+                .attr("class", "dataChartLabel")
+                .text(function(d) {
+                    return d.zoneName;
+                })
+                .attr("x", function(d, i) {
+                    return schoolCircleX + 15;
+                })
+                .attr("y", function(d) {
+                    return yScale(d.zoneValue) + 2;
+                })
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "16px")
+                .attr("fill", "black")
+                .attr("visibility", "hidden");
+
+    // tweakSchoolLabels();
+    activateChartCircles();
+
+    // ======= ======= ======= assignChartColors ======= ======= =======
+    function assignChartColors(zoneValue) {
+        // console.log("assignChartColors");
+        var binMin = binMax = colorIndex = null;
+        for (var i = 0; i < zonesCollectionObj.dataBins; i++) {
+            binMin = (zonesCollectionObj.dataIncrement * i);
+            binMax = (zonesCollectionObj.dataIncrement * (i + 1));
+            if ((binMin <= zoneValue) && (zoneValue <= binMax)) {
+                colorIndex = i;
+                break;
+            }
+        }
+        return colorIndex;
+    }
+
+    // ======= activateChartCircles =======
+    function activateChartCircles() {
+        console.log("activateChartCircles");
+
+        $('.dataChartValue').each(function(i) {
+
+            // ======= ======= ======= mouseover ======= ======= =======
+            $(this).off("mouseover").on("mouseover", function(event){
+                console.log("\n======= showLabel ======= ");
+                targetLabel = $('#dataChartLabel_' + i);
+                $(targetLabel).attr("visibility", "visible");
+                targetMarkerIndex = this.id.split("_")[1];
+                if (displayObj.dataFilters.zones == null) {
+                    schoolMarker = schoolsCollectionObj.schoolMarkersArray[targetMarkerIndex];
+                    schoolMarker.icon.fillColor = "white";
+                    schoolMarker.icon.scale = 0.4;
+                    schoolMarker.setMap(map);
+                } else {
+                    toggleFeatureHilite(i, "on");
+                }
+            });
+
+            // ======= ======= ======= mouseout ======= ======= =======
+            $(this).off("mouseout").on("mouseout", function(event){
+                // console.log("\n======= hideLabel ======= ");
+                targetLabel = $('#dataChartLabel_' + i);
+                $(targetLabel).attr("visibility", "hidden");
+                targetMarkerIndex = this.id.split("_")[1];
+                if (displayObj.dataFilters.zones == null) {
+                    schoolMarker = schoolsCollectionObj.schoolMarkersArray[targetMarkerIndex];
+                    schoolMarker.icon.fillColor = "yellow";
+                    schoolMarker.icon.scale = 0.2;
+                    schoolMarker.setMap(map);
+                } else {
+                    toggleFeatureHilite(i, "off");
+                }
+            });
+
+            // ======= ======= ======= mouseout ======= ======= =======
+            $(this).off("click").on("click", function(event){
+                console.log("\n======= click ======= ");
+                schoolIndex = this.id.split("_")[1];
+                if (displayObj.dataFilters.zones == null) {
+                    makeSchoolProfile(schoolsCollectionObj, schoolIndex);
+                    $("#profile").css("display", "table");
+                    schoolMarker = schoolsCollectionObj.schoolMarkersArray[targetMarkerIndex];
+                    schoolMarker.icon.fillColor = "yellow";
+                    schoolMarker.icon.scale = 0.2;
+                    schoolMarker.setMap(map);
+                }
+            });
+
+        });
+    }
+
+    // ======= toggleFeatureHilite =======
+    function toggleFeatureHilite(i, onOrOff) {
+        console.log("toggleFeatureHilite");
+        var zoneFeature = zonesCollectionObj.zoneFeaturesArray[i];
+        var zoneName = zoneFeature.getProperty('itemName');
+        var zoneIndex = zoneFeature.getProperty('index');
+        var itemColor = zoneFeature.getProperty('itemColor');
+        if (onOrOff == "on") {
+            map.data.overrideStyle(zoneFeature, {
+                fillOpacity: 0.5,
+                strokeColor: "purple"
+            });
+        } else {
+            map.data.revertStyle(zoneFeature);
+        }
+    }
+
+    // ======= tweakSchoolLabels =======
+    function tweakSchoolLabels() {
+        console.log("tweakSchoolLabels");
+        var yVal, newY, changeFlag;
+        var locOK = false;
+        var prevYarray = [];
+
+        $('.dataChartLabel').each(function(i) {
+            yVal = parseInt(this.getAttribute("y"));
+            prevYarray.push(yVal);
+        });
+
+        for (var i = 0; i < prevYarray.length; i++) {
+            checkY = prevYarray[i];
+            for (var j = 0; j < prevYarray.length; j++) {
+                if (j == i) {
+                } else {
+                    checkNext = prevYarray[j];
+                    checkDiff = Math.abs(checkY - checkNext);
+                    if (checkDiff < 14) {
+                        prevYarray[j] = checkNext + (14 - checkDiff);
+                    }
+                }
+            }
+        }
+
+        $('.dataChartLabel').each(function(i) {
+            nextYloc = prevYarray[i];
+            this.setAttribute("y", nextYloc);
+        });
+    }
+
+    // ======= stringToInt =======
+    function stringToInt(d) {
+        // console.log("stringToInt");
+        d.value = +d.value;
+        return d;
+    }
+}
+
+
+
 // ======= ======= ======= makeZoneSchoolsChart ======= ======= =======
 function makeZoneSchoolsChart(dataObjectsArray) {
     console.log("makeZoneSchoolsChart");
@@ -18,17 +367,6 @@ function makeZoneSchoolsChart(dataObjectsArray) {
         chartH = 360 - chartPadding.top - chartPadding.bottom;      // outer height of chart
 
     var dataMax = d3.max(dataObjectsArray, function(d) {
-        // if (dataMax > 1000000) {
-        //     scaleFactor = 1000000;
-        //     scaleLabel = "M$";
-        // } else if ((dataMax < 1000000) && (dataMax > 1000)) {
-        //     scaleFactor = 1000;
-        //     scaleLabel = "K$";
-        // } else {
-        //     scaleFactor = 1;
-        //     scaleLabel = "$";
-        // }
-        // return d.expend / scaleFactor;
         return d.expend;
     });
 
@@ -152,6 +490,7 @@ function makeZoneSchoolsChart(dataObjectsArray) {
 }
 
 
+// ======= ======= ======= makeSchoolsChart ======= ======= =======
 function makeSchoolsChart(schoolDataArray) {
     console.log("makeSchoolsChart");
 

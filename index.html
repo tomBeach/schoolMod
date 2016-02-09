@@ -14,10 +14,9 @@
 	<title>DCPS SchoolMod</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-	<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous"> -->
-	<!-- <link rel="stylesheet" href="/css/bootstrap-theme.css" type="text/css">
-	<link rel="stylesheet" href="/css/bootstrap.css" type="text/css"> -->
+	<link rel="stylesheet" href="css/jquery-ui.min.css" type="text/css">
+	<link rel="stylesheet" href="css/jquery-ui.structure.min.css" type="text/css">
+	<link rel="stylesheet" href="css/jquery-ui.theme.min.css" type="text/css">
 	<link rel="stylesheet" href="css/style.css" type="text/css">
 
 </head>
@@ -46,16 +45,11 @@
 					<nav id="main-nav"></nav>
 				</div>
 
-				<div id="info">
-					<div class="title_bar"><p>info</p></div>
-					<div id="infoText"></div>
-				</div>
 				<div id="map"></div>
-				<!-- <div id="message"><p>&nbsp;</p></div> -->
-				<div id="mapLegend"></div>
-				<!-- <div id="profileData"></div> -->
+				<div id='profile-container'></div>
+				<div id='legend-container'></div>
+		        <div id='chart-container'></div>
 			</div>
-
 		</div>
 
 		<!-- ======= ======= ======= scripts ======= ======= ======= -->
@@ -63,10 +57,10 @@
 		<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
 		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBkBjmogOyMcL5_QVtayKZ_X85rSQAf3BE&libraries=visualization"></script>
+		<script type="text/javascript" src="jquery-ui-1.11.4.custom/jquery-ui.min.js"></script>
 		<script type="text/javascript" src="d3graphs.js"></script>
 		<script type="text/javascript" src="utilities.js"></script>
 		<script type="text/javascript" src="script.js"></script>
-		<!-- <script type="text/javascript" src="objects.js"></script> -->
 
 	</div>
 </body>
