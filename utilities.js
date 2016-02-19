@@ -1331,7 +1331,7 @@ function initMap(zonesCollectionObj, displayObj) {
 }
 
 // ======= ======= ======= floating windows ======= ======= =======
-(function(){
+function initFloatingWindows() {
     console.log("initFloatingWindows");
 
     var popup = document.getElementById("popup");
@@ -1359,4 +1359,4 @@ function initMap(zonesCollectionObj, displayObj) {
         console.log("mouseUp");
         window.removeEventListener('mousemove', popupMove, true);
     }
-}());
+}

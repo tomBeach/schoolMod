@@ -787,10 +787,16 @@ function initApp(presetMode) {
         var self = this;
         var presetMode = displayObj.displayMode;
 
+        if (displayObj.displayMode == "storyMap") {
+            var websitePrefix = "prototypes/filter-map/";
+        } else {
+            var websitePrefix = "";
+        }
+
         // ======= get school data =======
         if (this.jsonData == null) {
             $.ajax({
-                url: "Data_Schools/DCPS_Master_114_dev.csv",
+                url: websitePrefix + "Data_Schools/DCPS_Master_114_dev.csv",
                 method: "GET",
                 dataType: "text"
             }).done(function(textData){
@@ -1552,6 +1558,7 @@ function initApp(presetMode) {
         schoolsCollectionObj.loadAutoComplete();
         checkFilterSelection(displayObj, zonesCollectionObj, "init");
         initMap(zonesCollectionObj, displayObj);
+        initFloatingWindows();
         zonesCollectionObj.getZoneData();
     }
 
