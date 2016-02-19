@@ -782,6 +782,7 @@ function initApp(presetMode) {
     // ======= ======= ======= getSchoolData ======= ======= =======
     SchoolsCollection.prototype.getSchoolData = function() {
         console.log("\n----- getSchoolData -----");
+        console.log("  displayObj.zoneA: ", displayObj.zoneA);
 
         var self = this;
         var presetMode = displayObj.displayMode;
