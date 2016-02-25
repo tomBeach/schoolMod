@@ -19,9 +19,9 @@
 // ======= ======= ======= ======= ======= TEXT PROCESSING & DISPLAY ======= ======= ======= ======= =======
 
 // ======= ======= ======= getZoneUrls ======= ======= =======
-function getZoneUrls(displayObj) {
+function getZoneUrls(displayObj, zonesCollectionObj) {
     console.log("getZoneUrls");
-    console.log("  .zoneA: ", displayObj.zoneA);
+    console.log("  .zoneA: ", zonesCollectionObj.zoneA);
     console.log("  .zones: ", displayObj.dataFilters.zones);
 
     var feederFlag = false;
@@ -33,9 +33,11 @@ function getZoneUrls(displayObj) {
 
     if (displayObj.dataFilters.zones) {
         if (displayObj.dataFilters.zones == "Ward") {
+            zonesCollectionObj.zoneA = "Ward";
             urlA = websitePrefix + "Data_Geo/Ward__2012.geojson";
             urlB = null;
         } else if (displayObj.dataFilters.zones == "FeederHS") {
+            zonesCollectionObj.zoneA = "FeederHS";
             urlA = websitePrefix + "Data_Geo/School_Attendance_Zones_Senior_High__New.geojson";
             if (displayObj.dataFilters.levels == "MS") {
                 feederFlag = true;
@@ -48,17 +50,24 @@ function getZoneUrls(displayObj) {
             }
         } else if (displayObj.dataFilters.zones == "FeederMS") {
             feederFlag = true;
+            zonesCollectionObj.zoneA = "FeederMS";
             urlA = websitePrefix + "Data_Geo/School_Attendance_Zones_Middle_School__New.geojson";
             urlB = websitePrefix + "Data_Geo/School_Attendance_Zones_Elementary__New.geojson";
+        } else if (displayObj.dataFilters.zones == "Elementary") {
+            urlA = websitePrefix + "Data_Geo/School_Attendance_Zones_Elementary__New.geojson";
         }
     } else {
         if (displayObj.dataFilters.levels == "HS") {
+            zonesCollectionObj.zoneA = "FeederHS";
             urlA = websitePrefix + "Data_Geo/School_Attendance_Zones_Senior_High__New.geojson";
         } else if (displayObj.dataFilters.levels == "MS") {
+            zonesCollectionObj.zoneA = "FeederMS";
             urlA = websitePrefix + "Data_Geo/School_Attendance_Zones_Middle_School__New.geojson";
         } else if (displayObj.dataFilters.levels == "ES") {
+            zonesCollectionObj.zoneA = "Elementary";
             urlA = websitePrefix + "Data_Geo/School_Attendance_Zones_Elementary__New.geojson";
         } else {
+            zonesCollectionObj.zoneA = "Ward";
             urlA = websitePrefix + "Data_Geo/Ward__2012.geojson";
         }
         urlB = null;
@@ -94,39 +103,42 @@ function removeAbbreviations(longName) {
 // ======= ======= ======= processSchoolName ======= ======= =======
 function processSchoolName(schoolName) {
     // console.log("processSchoolName");
+    // console.log("  schoolName: ", schoolName);
 
     var shortName;
 
-    shortName = schoolName.replace("Elementary School", "");
-    shortName = shortName.replace("High School", "");
-    shortName = shortName.replace("Middle School", "");
-    shortName = shortName.replace("Education Campus", "");
-    shortName = shortName.replace("ES", "");
+    if (schoolName) {
+        shortName = schoolName.replace("Elementary School", "");
+        shortName = shortName.replace("High School", "");
+        shortName = shortName.replace("Middle School", "");
+        shortName = shortName.replace("Education Campus", "");
+        shortName = shortName.replace("ES", "");
 
-    checkName1 = shortName.indexOf(", ");
-    if (checkName1 > -1) {
-        splitZoneName = shortName.split(", ");
-        shortName = splitZoneName[0];
+        checkName1 = shortName.indexOf(", ");
+        if (checkName1 > -1) {
+            splitZoneName = shortName.split(", ");
+            shortName = splitZoneName[0];
+        }
+        checkName2 = shortName.indexOf(". ");
+        if (checkName2 > -1) {
+            splitZoneName = shortName.split(". ");
+            shortName = splitZoneName[1];
+        }
+        checkName3 = shortName.indexOf(" ");
+        if (checkName3 > -1) {
+            splitZoneName = shortName.split(" ");
+            shortName = splitZoneName[0];
+        }
+    } else {
+        shortName = null;
     }
-    checkName2 = shortName.indexOf(". ");
-    if (checkName2 > -1) {
-        splitZoneName = shortName.split(". ");
-        shortName = splitZoneName[1];
-    }
-    checkName3 = shortName.indexOf(" ");
-    if (checkName3 > -1) {
-        splitZoneName = shortName.split(" ");
-        shortName = splitZoneName[0];
-        // if (checkName3 == (shortName.length - 1)) {
-        //     shortName = shortName.substring(0, (shortName.length - 1));
-        // }
-    }
+
     return shortName;
 }
 
 // ======= ======= ======= checkFilterSelection ======= ======= =======
 function checkFilterSelection(displayObj, zonesCollectionObj, whichCategory) {
-    console.log("checkFilterSelection");
+    console.log("##### checkFilterSelection #####");
 
     console.log("  whichCategory: ", whichCategory);
     console.log("  zoneA: ", zonesCollectionObj.zoneA);
@@ -138,7 +150,7 @@ function checkFilterSelection(displayObj, zonesCollectionObj, whichCategory) {
 }
 
 // ======= ======= ======= updateChartText ======= ======= =======
-function updateChartText(displayObj, expendText, subtitle) {
+function updateChartText(displayObj, subtitle) {
     console.log("updateChartText");
 
     var words, agencyText, mathText, whichLevel, schoolText;
@@ -158,12 +170,27 @@ function updateChartText(displayObj, expendText, subtitle) {
 
     // == math label
     if (displayObj.dataFilters.math) {
-        mathText = filterMenu[displayObj.dataFilters.math].text;
+        if (displayObj.displayMode != "storyMap") {
+            mathText = filterMenu[displayObj.dataFilters.math].text;
+        } else {
+            mathText = filterMenu[displayObj.dataFilters.math].label;
+        }
         if (mathText == "dollar amount") {
             mathText = "";
         }
     } else {
         mathText = "";
+    }
+
+    // == expend label
+    if (displayObj.dataFilters.expend) {
+        if (displayObj.displayMode != "storyMap") {
+            expendText = filterMenu[displayObj.dataFilters.expend].text;
+        } else {
+            expendText = filterMenu[displayObj.dataFilters.expend].label;
+        }
+    } else {
+        expendText = "";
     }
 
     // == levels label
@@ -175,14 +202,21 @@ function updateChartText(displayObj, expendText, subtitle) {
         }if (displayObj.dataFilters.levels == "ES") {
             whichLevel = "Elem";
         }
-        console.log("  filterMenu: ", filterMenu);
-        console.log("  displayObj.dataFilters.levels: ", displayObj.dataFilters.levels);
-        schoolText = filterMenu[whichLevel].text;
+        // console.log("  filterMenu: ", filterMenu);
+        // console.log("  displayObj.dataFilters.levels: ", displayObj.dataFilters.levels);
+        schoolText = filterMenu[whichLevel].label;
     } else {
         schoolText = "";
     }
+    // console.log("  expendText: ", expendText);
+    // console.log("  subtitle: ", subtitle);
+    // console.log("  displayObj.displayMode: ", displayObj.displayMode);
+    if (displayObj.displayMode == "storyMap") {
+        $('#chart-label').text("");
+    }
     $("#chart-title").text(expendText + " " + mathText);
     $('#chart-subtitle').text(subtitle);
+
     return [mathText, schoolText, agencyText];
 }
 
@@ -232,106 +266,138 @@ function displayHoverMessage(displayObj, textMessage) {
 }
 
 
-// ======= ======= ======= updateFilterTitles ======= ======= =======
-function updateFilterTitles(displayObj, whichFilterText, addRemove) {
-    console.log("updateFilterTitles");
-    console.log("  whichFilterText: ", whichFilterText);
-    console.log("  displayObj.filterTitlesArray.length: ", displayObj.filterTitlesArray.length);
+// ======= ======= ======= updateFilterItem ======= ======= =======
+function updateFilterItem(displayObj, whichCategory, whichFilter, onOrOff) {
+    console.log("updateFilterItem");
+    console.log("  whichCategory: ", whichCategory);
+    console.log("  whichFilter: ", whichFilter);
+    console.log("  onOrOff: ", onOrOff);
 
-    var filterTitleContainer = $("#filters-title").children("h2");
-    var filterText = $(filterTitleContainer).html();
-    var checkArray;
+    var nextMenu, nextCategory;
+
+    for (var i = 0; i < displayObj.filterMenusArray.length; i++) {
+        nextMenu = displayObj.filterMenusArray[i];
+        nextCategory = nextMenu[0];
+        console.log("  nextCategory: ", nextCategory);
+        if (nextCategory == whichCategory) {
+            for (var j = 1; j < nextMenu.length; j++) {
+                nextFilterObject = nextMenu[j];
+                console.log("  nextFilterObject.id: ", nextFilterObject.id );
+                if ((nextFilterObject.id == whichFilter) && (onOrOff == undefined)) {
+                    $("#" + nextFilterObject.id).addClass("selected");
+                    console.log("  selected: ", nextFilterObject.id );
+                } else if ((nextFilterObject.id == whichFilter) && (onOrOff == "off")) {
+                    $("#" + nextFilterObject.id).addClass("deactivated");
+                    console.log("  deactivated: ", nextFilterObject.id );
+                } else if ((nextFilterObject.id == whichFilter) && (onOrOff == "on")) {
+                    $("#" + nextFilterObject.id).removeClass("deactivated");
+                    console.log("  deactivated: ", nextFilterObject.id );
+                } else {
+                    $("#" + nextFilterObject.id).removeClass("selected");
+                }
+            }
+            break;
+        }
+    }
+}
+
+// ======= ======= ======= setMenuState ======= ======= =======
+function setMenuState(displayObj, whichMenu, whichStates) {
+    console.log("setMenuState");
+    // console.log("  whichMenu[0]: ", whichMenu[0]);
+    // console.log("  whichStates: ", whichStates);
+    // console.log("  displayObj.filterTitlesArray1: ", displayObj.filterTitlesArray);
+
+    var selectedFilterContainer = $("#filters-selections").children("h2");
+    var selectedFilterText = $(selectedFilterContainer).html();
+
+    if (whichMenu[0] == "zones") {
+        if ((whichStates[1] == "S") || (whichStates[2] == "S")) {
+            // == remove previous level filters from list if any
+            removeItemsArray = ["High Schools", "Middle Schools", "Elementary Schools", "FeederHS", "FeederMS"];
+            for (var i = 0; i < removeItemsArray.length; i++) {
+                checkItem = removeItemsArray[i];
+                console.log("  checkItem: ", checkItem);
+                checkIndex = $.inArray(checkItem, displayObj.filterTitlesArray);
+                console.log("  checkIndex: ", checkIndex);
+                if (checkIndex > -1) {
+                    displayObj.filterTitlesArray.splice(checkIndex, 1);
+                    // console.log("  displayObj.filterTitlesArray2: ", displayObj.filterTitlesArray);
+                    break;
+                }
+            }
+        }
+    }
+
+    console.log("  displayObj.filterTitlesArray2: ", displayObj.filterTitlesArray);
+
+    for (var i = 0; i < whichStates.length; i++) {
+        nextState = whichStates[i];
+        nextMenuItem = whichMenu[i+1];
+        nextMenuText = nextMenuItem.text;
+        nextElement = $("#" + nextMenuItem.id);
+        checkIndex = $.inArray(nextMenuText, displayObj.filterTitlesArray);
+        // console.log("*** nextMenuItem.id: ", nextMenuItem.id);
+        // console.log("  whichStates: ", whichStates);
+        // console.log("  checkIndex: ", checkIndex);
+        // console.log("  nextState: ", nextState);
+        // console.log("  nextElement: ", nextElement);
+        if (nextState == "A") {
+            if (checkIndex > -1) {
+                displayObj.filterTitlesArray.splice(checkIndex, 1);
+                // console.log("  displayObj.filterTitlesArray3: ", displayObj.filterTitlesArray);
+            }
+            $(nextElement).addClass("active");
+            $(nextElement).removeClass("selected");
+            $(nextElement).removeClass("deactivated");
+        } else if (nextState == "D") {
+            if (checkIndex > -1) {
+                displayObj.filterTitlesArray.splice(checkIndex, 1);
+                // console.log("  displayObj.filterTitlesArray3: ", displayObj.filterTitlesArray);
+            }
+            $(nextElement).removeClass("active");
+            $(nextElement).removeClass("selected");
+            $(nextElement).addClass("deactivated");
+        } else if (nextState == "S") {
+            displayObj.filterTitlesArray.push(nextMenuText);
+            $(nextElement).removeClass("deactivated");
+            $(nextElement).addClass("active");
+            $(nextElement).addClass("selected");
+            // console.log("  displayObj.filterTitlesArray3: ", displayObj.filterTitlesArray);
+        }
+    }
+    // console.log("  displayObj.filterTitlesArray4: ", displayObj.filterTitlesArray);
+
+    // == build new filter text html from filterTitlesArray
+    selectedFilterText = "<span class='filterLabel'>Data for: </span>";
+    for (var i = 0; i < displayObj.filterTitlesArray.length; i++) {
+        nextFilter = displayObj.filterTitlesArray[i];
+        console.log("  nextFilter: ", nextFilter);
+        if (i == (displayObj.filterTitlesArray.length - 1)) {
+            selectedFilterText += nextFilter;
+        } else {
+            selectedFilterText += nextFilter + ", ";
+        }
+    }
+    // console.log("  displayObj.filterTitlesArray5: ", displayObj.filterTitlesArray);
+    $(selectedFilterContainer).addClass("filterList");
+    $(selectedFilterContainer).html(selectedFilterText);
+}
+
+// ======= ======= ======= displayFilterMessage ======= ======= =======
+function displayFilterMessage(displayObj, menuObject, whichAction) {
+    console.log("displayFilterMessage");
+    console.log("  displayObj.filterTitlesArray1: ", displayObj.filterTitlesArray);
+
+    var selectedFilterContainer = $("#filters-selections").children("h2");
 
     // == add message for user (not filter selections)
     if (typeof displayObj == "string") {
         filterText = "<span class='filterLabel'>Message: </span>";
         filterText += displayObj;
-        $(filterTitleContainer).addClass("filterList");
-
-    // == add filter selections
-    } else {
-
-        // == selected zone filter
-        if ((displayObj.dataFilters.selectedZone != null) && (addRemove == "add")) {
-            displayObj.filterTitlesArray = [];
-            displayObj.filterTitlesArray.push(whichFilterText);
-            filterText = "<span class='filterLabel'>Selected Zone: </span>" + whichFilterText;
-            $(filterTitleContainer).addClass("filterList");
-
-        // == no selected zone (normal filter processing)
-        } else {
-            if ((addRemove == "add") || (addRemove == "FeederHS") || (addRemove == "FeederMS")) {
-                console.log("  addRemove: ", addRemove);
-                // if (displayObj.filterTitlesArray.length == 1) {
-                //     console.log("  displayObj.filterTitlesArray.length: ", displayObj.filterTitlesArray.length);
-                //     filterText = "<span class='filterLabel'>Data for: </span>" + whichFilterText;
-                // } else {
-
-                    // == remove previously selected levels filters (added back based on zone selection)
-                    if ((addRemove == "FeederHS") || (addRemove == "FeederMS")) {
-                        console.log("  displayObj.filterTitlesArray: ", displayObj.filterTitlesArray);
-                        removeItemsArray = ["High Schools", "Middle Schools", "Elementary Schools", "FeederHS", "FeederMS"];
-                        for (var i = 0; i < removeItemsArray.length; i++) {
-                            checkItem = removeItemsArray[i];
-                            checkArray = $.inArray(checkItem, displayObj.filterTitlesArray);
-                            if (checkArray > -1) {
-                                displayObj.filterTitlesArray.splice(checkArray, 1);
-                            }
-                        }
-                        displayObj.filterTitlesArray.push(addRemove);
-                    }
-                    displayObj.filterTitlesArray.push(whichFilterText);
-                    console.log("  displayObj.filterTitlesArray: ", displayObj.filterTitlesArray);
-
-                    // == build new filter text html from filterTitlesArray
-                    filterText = "<span class='filterLabel'>Data for: </span>";
-                    if (displayObj.filterTitlesArray.length > 0) {
-                        for (var i = 0; i < displayObj.filterTitlesArray.length; i++) {
-                            nextFilter = displayObj.filterTitlesArray[i];
-                            if (i == (displayObj.filterTitlesArray.length - 1)) {
-                                filterText += whichFilterText;
-                            } else {
-                                filterText += nextFilter + ", ";
-                            }
-                        }
-                    }
-                // }
-                $(filterTitleContainer).addClass("filterList");
-
-            // == removing previous filters
-            } else {
-
-                // == find selected filter (whichFilterText) in array and remove it
-                for (var i = 0; i < displayObj.filterTitlesArray.length; i++) {
-                    checkFilter = displayObj.filterTitlesArray[i];
-                    if (checkFilter == whichFilterText) {
-                        displayObj.filterTitlesArray.splice(i, 1);
-                        break;
-                    }
-                }
-
-                // == all filters have been removed; return to init state
-                if (displayObj.filterTitlesArray.length == 0) {
-                    filterText = "your filters";
-                    $(filterTitleContainer).removeClass("filterList");
-
-                // == display remaining filters after removing selected filter
-                } else {
-                    filterText = "<span class='filterLabel'>Data for: </span>";
-                    for (var i = 0; i < displayObj.filterTitlesArray.length; i++) {
-                        nextFilter = displayObj.filterTitlesArray[i];
-                        if (i == (displayObj.filterTitlesArray.length - 1)) {
-                            filterText += nextFilter;
-                        } else {
-                            filterText += nextFilter + ", ";
-                        }
-                    }
-                    $(filterTitleContainer).addClass("filterList");
-                }
-            }
-        }
+        $(selectedFilterContainer).addClass("filterList");
+        $(selectedFilterContainer).html(filterText);
     }
-    $(filterTitleContainer).html(filterText);
 }
 
 
@@ -380,6 +446,7 @@ function aggregateZoneData(zonesCollectionObj, displayObj, schoolData, masterInd
     // console.log("  .schoolFeederHS: ", schoolData.schoolFeederHS);
     // console.log("  .schoolFeederMS: ", schoolData.schoolFeederMS);
     // console.log("  .schoolWard: ", schoolData.schoolWard);
+    // console.log("  .schoolAgency: ", schoolData.schoolAgency);
 
     // == match school name from geojson file with school name from csv file
     if (displayObj.dataFilters.zones) {
@@ -447,7 +514,7 @@ function aggregateZoneData(zonesCollectionObj, displayObj, schoolData, masterInd
                 nextSchoolExpend = 0;
             }
         } else {
-            // console.log("ERROR: nextSchoolExpend NaN " + schoolData.schoolName);
+            console.log("ERROR: nextSchoolExpend NaN " + schoolData.schoolName);
             nextSchoolExpend = 0;
         }
 
@@ -462,7 +529,7 @@ function aggregateZoneData(zonesCollectionObj, displayObj, schoolData, masterInd
                 nextSchoolSqft = 0;
             }
         } else {
-            // console.log("ERROR: nextSchoolSqft NaN " + schoolData.schoolName);
+            console.log("ERROR: nextSchoolSqft NaN " + schoolData.schoolName);
             nextSchoolSqft = 0;
         }
 
@@ -477,7 +544,7 @@ function aggregateZoneData(zonesCollectionObj, displayObj, schoolData, masterInd
                 nextSchoolEnroll = 0;
             }
         } else {
-            // console.log("ERROR: nextSchoolEnroll NaN " + schoolData.schoolName);
+            console.log("ERROR: nextSchoolEnroll NaN " + schoolData.schoolName);
             nextSchoolEnroll = 0;
         }
 
@@ -898,7 +965,7 @@ function makeZoneGeometry(feature) {
 function mouseoverZone(event, itemName) {
     console.log("mouseoverZone");
     updateHoverText(itemName);
-    updateFilterTitles("Select zone or school");
+    displayFilterMessage("Select zone or school");
     if (map.get('clickedZone')!= event.feature ) {
         map.data.overrideStyle(event.feature, {
             fillColor: "white",
@@ -1040,14 +1107,14 @@ function getDataDetails(nextSchool) {
 
     var schoolData = {
         // school identity data
-        "schoolCode": nextSchool.SCHOOLCODE,
+        "schoolCode": nextSchool.School_ID,
         "schoolName": nextSchool.School,
-        "schoolWard": nextSchool.WARD,
+        "schoolWard": nextSchool.Ward,
         "schoolFeederMS": nextSchool.FeederMS,
         "schoolFeederHS": nextSchool.FeederHS,
         "schoolAddress": nextSchool.Address,
-        "schoolLAT": nextSchool.LAT,
-        "schoolLON": nextSchool.LON,
+        "schoolLAT": nextSchool.latitude,
+        "schoolLON": nextSchool.longitude,
         "schoolLevel": nextSchool.Level,
         "schoolAgency": nextSchool.Agency,
 
@@ -1061,7 +1128,7 @@ function getDataDetails(nextSchool) {
         "schoolEnroll": nextSchool.Total_Enrolled,
         "studentEng": nextSchool.Limited_English,
         "studentAtRisk": nextSchool.At_Risk,
-        "studentSpecEd": nextSchool.SpecEd_fake,
+        "studentSpecEd": nextSchool.SpEd,
         "studentESLPer": nextSchool.ESLPer,
         "studentAtRiskPer": nextSchool.AtRiskPer,
         "studentSPEDPer": nextSchool.SPEDPer,
@@ -1072,24 +1139,80 @@ function getDataDetails(nextSchool) {
         "spendPlanned": nextSchool.TotalAllotandPlan1621,
         "spendSqFt": nextSchool.SpentPerSqFt,           // Sqft
         "spendLTsqft": nextSchool.LTBudgetPerSqFt,
-        "spendEnroll": nextSchool.SpentPerEnroll,       // Student
+        "spendEnroll": nextSchool.SpentPerMaxOccupancy,       // Student
         "spendLTenroll": nextSchool.LTBudgetPerEnroll
     }
    return schoolData;
 }
 
 // ======= ======= ======= makeSchoolProfile ======= ======= =======
-function makeSchoolProfile(collectionOrSchool, displayObj, schoolIndex) {
+function makeSchoolProfile(schoolsCollectionObj, zonesCollectionObj, displayObj, schoolData, schoolIndex) {
     console.log("makeSchoolProfile");
     console.log("  schoolIndex: ", schoolIndex);
 
     if ((typeof schoolIndex === 'undefined') || (typeof schoolIndex === 'null')) {
         console.log("*** TRUE ***");
-        var processedSchoolData = getDataDetails(collectionOrSchool);
+        var processedSchoolData = getDataDetails(schoolData);
         var cleanedSchoolData = validateSchoolData(processedSchoolData);
     } else {
-        var selectedSchoolData = collectionOrSchool.selectedSchoolsArray[schoolIndex];
+        var selectedSchoolData = schoolsCollectionObj.selectedSchoolsArray[schoolIndex];
         var cleanedSchoolData = validateSchoolData(selectedSchoolData);
+    }
+
+    schoolEnroll = cleanedSchoolData.schoolEnroll;
+    schoolMaxOccupancy = cleanedSchoolData.schoolMaxOccupancy;
+    schoolSqft = cleanedSchoolData.schoolSqft;
+    schoolSqFtPerEnroll = cleanedSchoolData.schoolSqFtPerEnroll;
+    spendLifetime = cleanedSchoolData.spendLifetime;
+    console.log("  spendLifetime: ", spendLifetime);
+    spendEnroll = cleanedSchoolData.spendEnroll;
+    console.log("  spendEnroll: ", spendEnroll);
+    spendSqFt = cleanedSchoolData.spendSqFt;
+
+    if (schoolSqft == "") {
+        schoolSqft = "No data for school sqft.";
+        schoolSqftSpan = "";
+    } else {
+        schoolSqftSpan = "<span class='value-label'>sqft</span>";
+    }
+    if (schoolMaxOccupancy == "") {
+        schoolMaxOccupancy = "No data for school capacity.";
+        schoolMaxOccupancySpan = "";
+    } else {
+        schoolMaxOccupancySpan = "<span class='value-label'>students</span>";
+    }
+    if (schoolEnroll == "") {
+        schoolEnroll = "No data for enrollment.";
+        schoolEnrollSpan = "";
+    } else {
+        schoolEnrollSpan = "<span class='value-label'>students</span>";
+    }
+    if (schoolSqFtPerEnroll == "") {
+        schoolSqFtPerEnroll = "No data for sqFt/student.";
+        schoolSqFtPerEnrollSpan = "";
+    } else {
+        schoolSqFtPerEnrollSpan = "<span class='value-label'>sqft per student</span>";
+    }
+    if (spendLifetime == "") {
+        spendLifetime = "No data for lifetime spending";
+        spendLifetimeSpan = "";
+    } else {
+        spendLifetime = "$" + spendLifetime;
+        spendLifetimeSpan = "";
+    }
+    if (spendEnroll == "") {
+        spendEnroll = "No data for spending/student.";
+        spendEnrollSpan = "";
+    } else {
+        spendEnroll = "$" + spendEnroll;
+        spendEnrollSpan = "<span class='value-label'>per student</span>";
+    }
+    if (spendSqFt == "") {
+        spendSqFt = "No data for spending/sqFt.";
+        spendSqFtSpan = "";
+    } else {
+        spendSqFt = "$" + spendSqFt;
+        spendSqFtSpan = "<span class='value-label'>per sqft</span>";
     }
 
     var itemName = cleanedSchoolData.schoolName;
@@ -1118,19 +1241,19 @@ function makeSchoolProfile(collectionOrSchool, displayObj, schoolIndex) {
     htmlString += "<tr><td class='data-key'><p class='key-text'>HS Feeder</p></td>";
     htmlString += "<td class='data-value'><p class='value-text'>" + cleanedSchoolData.schoolFeederHS + "</p></td></tr>";
     htmlString += "<tr><td class='data-key'><p class='key-text'>bldg Sqft</p></td>";
-    htmlString += "<td class='data-value'><p class='value-text'>" + cleanedSchoolData.schoolSqft + " <span class='value-label'>sqft</span></p></td></tr>";
+    htmlString += "<td class='data-value'><p class='value-text'>" + schoolSqft + " " + schoolSqftSpan + "</p></td></tr>";
     htmlString += "<tr><td class='data-key'><p class='key-text'>bldg capacity</p></td>";
-    htmlString += "<td class='data-value'><p class='value-text'>" + cleanedSchoolData.schoolMaxOccupancy + " <span class='value-label'>students</span></p></td></tr>";
+    htmlString += "<td class='data-value'><p class='value-text'>" + schoolMaxOccupancy + " " + schoolMaxOccupancySpan + "</p></td></tr>";
     htmlString += "<tr><td class='data-key'><p class='key-text'>enrolled (2014-15)</p></td>";
-    htmlString += "<td class='data-value'><p class='value-text'>" + cleanedSchoolData.schoolEnroll + " <span class='value-label'>students</span></p></td></tr>";
+    htmlString += "<td class='data-value'><p class='value-text'>" + schoolEnroll + " " + schoolEnrollSpan + "</p></td></tr>";
     htmlString += "<tr><td class='data-key'><p class='key-text'>sqft/enrolled</p></td>";
-    htmlString += "<td class='data-value'><p class='value-text'>" + cleanedSchoolData.schoolSqFtPerEnroll + " <span class='value-label'>sqft per student</span></p></td></tr>";
+    htmlString += "<td class='data-value'><p class='value-text'>" + schoolSqFtPerEnroll + " " + schoolSqFtPerEnrollSpan + "</p></td></tr>";
     htmlString += "<tr><td class='data-key'><p class='key-text'>Lifetime Spending</p></td>";
-    htmlString += "<td class='data-value'><p class='value-text'>$" + cleanedSchoolData.spendLifetime + "</p></td></tr>";
-    htmlString += "<tr><td class='data-key'><p class='key-text'>spending/enrolled</p></td>";
-    htmlString += "<td class='data-value'><p class='value-text'>$" + cleanedSchoolData.spendEnroll + " <span class='value-label'>per student</span></p></td></tr>";
-    htmlString += "<tr><td class='data-key'><p class='key-text'>spending/sqft</p></td>";
-    htmlString += "<td class='data-value'><p class='value-text'>$" + cleanedSchoolData.spendSqFt + " <span class='value-label'>per sqft</span></p></td></tr>";
+    htmlString += "<td class='data-value'><p class='value-text'>" + spendLifetime + " " + spendLifetimeSpan + "</p></td></tr>";
+    htmlString += "<tr><td class='data-key'><p class='key-text'>Spending/student</p></td>";
+    htmlString += "<td class='data-value'><p class='value-text'>" + spendEnroll + " " + spendEnrollSpan + "</p></td></tr>";
+    htmlString += "<tr><td class='data-key'><p class='key-text'>Spending/sqft</p></td>";
+    htmlString += "<td class='data-value'><p class='value-text'>" + spendSqFt + " " + spendSqFtSpan + "</p></td></tr>";
     htmlString += "</table>";
 
     // == remove previous chart or profile html if any
@@ -1153,6 +1276,7 @@ function makeSchoolProfile(collectionOrSchool, displayObj, schoolIndex) {
         });
     }
     displayObj.activateCloseButton();
+    // makeProfileChart(zonesCollectionObj, schoolsCollectionObj, displayObj, schoolIndex);
 }
 
 // ======= ======= ======= validateSchoolData ======= ======= =======
@@ -1182,6 +1306,12 @@ function validateSchoolData(selectedSchoolData) {
     if (selectedSchoolData.schoolLevel == "NA") {
         selectedSchoolData.schoolLevel = "&nbsp;";
     }
+    if (selectedSchoolData.schoolFeederHS == "NA") {
+        selectedSchoolData.schoolFeederHS = "&nbsp;";
+    }
+    if (selectedSchoolData.schoolFeederMS == "NA") {
+        selectedSchoolData.schoolFeederMS = "&nbsp;";
+    }
 
     selectedSchoolData.schoolProject =  selectedSchoolData.schoolProject.replace(/\w\S*/g, function(txt){
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
@@ -1203,6 +1333,7 @@ function validateSchoolData(selectedSchoolData) {
     var spendLifetime = isNumber(selectedSchoolData.spendLifetime);
     if (spendLifetime == true) {
         spendLifetime = numberWithCommas(selectedSchoolData.spendLifetime)
+        console.log("  spendLifetime: ", spendLifetime);
         selectedSchoolData.spendLifetime = spendLifetime;
     } else {
         selectedSchoolData.spendLifetime = "";
@@ -1212,6 +1343,7 @@ function validateSchoolData(selectedSchoolData) {
     if (spendEnroll == true) {
         spendEnroll = parseInt(selectedSchoolData.spendEnroll);
         spendEnroll = numberWithCommas(spendEnroll);
+        console.log("  spendEnroll: ", spendEnroll);
         spendEnrollStr = spendEnroll;
         selectedSchoolData.spendEnroll = spendEnrollStr;
     } else {
@@ -1312,15 +1444,12 @@ function initMap(zonesCollectionObj, displayObj) {
         console.log("*** storyMap ***");
         var zoom = 10;
         var mapContainer = document.getElementById('storyMap-container');
+        // console.log("  mapContainer: ", mapContainer);
         map = new google.maps.Map(mapContainer, {
             center: {lat: 38.89, lng: -77.00},
-            disableDefaultUI: false,
+            disableDefaultUI: true,
             disableDoubleClickZoom: true,
-            zoomControl: true,
-            zoomControlOpt: {
-                style: 'SMALL',
-                position: 'TOP_LEFT'
-            },
+            zoomControl: false,
             draggable: true,
             scrollwheel: false,
             styles: styleArray,     // styles for map tiles
@@ -1328,6 +1457,69 @@ function initMap(zonesCollectionObj, displayObj) {
             zoom: zoom
         });
     }
+}
+
+// ======= ======= ======= checkSchoolData ======= ======= =======
+function checkSchoolData(zonesCollectionObj, schoolsCollectionObj, selectedSchoolsArray, selectedCodesArray, rejectedCodesArray, rejectedAggregatorArray) {
+    console.log("checkSchoolData");
+
+    // ======= check aggregated numbers =======
+    var zoneAmountArray = [];
+    var zoneEnrollArray = [];
+    var zoneSqftArray = [];
+    var amountTotal = 0;
+    var enrollTotal = 0;
+    var sqftTotal = 0;
+
+    for (var i = 0; i < zonesCollectionObj.aggregatorArray.length; i++) {
+        nextZoneObject = zonesCollectionObj.aggregatorArray[i];
+        zoneAmountArray.push(nextZoneObject.zoneAmount);
+        zoneEnrollArray.push(nextZoneObject.zoneEnroll);
+        zoneSqftArray.push(nextZoneObject.zoneSqft);
+        amountTotal = amountTotal + nextZoneObject.zoneAmount;
+        enrollTotal = enrollTotal + nextZoneObject.zoneEnroll;
+        sqftTotal = sqftTotal + nextZoneObject.zoneSqft;
+    }
+    var minAmount = Math.min.apply(Math, zoneAmountArray);
+    var maxAmount = Math.max.apply(Math, zoneAmountArray);
+    var avgAmount = amountTotal/zonesCollectionObj.aggregatorArray.length;
+    var incAmount = maxAmount/zonesCollectionObj.aggregatorArray.length;
+    var minEnroll = Math.min.apply(Math, zoneEnrollArray);
+    var maxEnroll = Math.max.apply(Math, zoneEnrollArray);
+    var avgEnroll = enrollTotal/zonesCollectionObj.aggregatorArray.length;
+    var incEnroll = maxEnroll/zonesCollectionObj.aggregatorArray.length;
+    var minSqft = Math.min.apply(Math, zoneSqftArray);
+    var maxSqft = Math.max.apply(Math, zoneSqftArray);
+    var avgSqft = sqftTotal/zonesCollectionObj.aggregatorArray.length;
+    var incSqft = maxSqft/zonesCollectionObj.aggregatorArray.length;
+
+    // == check the math
+    console.log("*** amounts ***");
+    console.log("  zoneAmountArray: ", zoneAmountArray);
+    console.log("  minAmount: ", minAmount);
+    console.log("  maxAmount: ", maxAmount);
+    console.log("  avgAmount: ", avgAmount);
+    console.log("  incAmount: ", incAmount);
+    console.log("*** enroll ***");
+    console.log("  zoneEnrollArray: ", zoneEnrollArray);
+    console.log("  minEnroll: ", minEnroll);
+    console.log("  maxEnroll: ", maxEnroll);
+    console.log("  avgEnroll: ", avgEnroll);
+    console.log("  incEnroll: ", incEnroll);
+    console.log("*** sqft ***");
+    console.log("  zoneSqftArray: ", zoneSqftArray);
+    console.log("  minSqft: ", minSqft);
+    console.log("  maxSqft: ", maxSqft);
+    console.log("  avgSqft: ", avgSqft);
+    console.log("  incSqft: ", incSqft);
+
+    // == check arrays for consistency or errors
+    console.log("*** all schools count: ", schoolsCollectionObj.jsonData.length);
+    console.log("  selectedSchoolsCt: ", selectedSchoolsArray.length);
+    console.log("  selectedCodesCt: ", selectedCodesArray.length);
+    console.log("  rejectedCodesCt: ", rejectedCodesArray.length);
+    console.log("  aggregatorArray: ", zonesCollectionObj.aggregatorArray.length);
+    console.log("  rejectedAggCt: ", rejectedAggregatorArray.length);
 }
 
 // ======= ======= ======= floating windows ======= ======= =======

@@ -7,6 +7,8 @@
 
     <meta name="author" content="">
     <meta name="description" content="">
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous"> -->
+    <link rel="icon" href="images/favicon.ico">
 
   <!-- ======= ======= ======= styles ======= ======= ======= -->
 	<title>DCPS MapTool</title>
@@ -26,53 +28,23 @@
 		<!-- ======= ======= ======= tabs ======= ======= ======= -->
 		<div class="row header">
 			<div class="page-title"><h1>DCPS School Modernization Tool</h1></div>
-			<div id="filters-selections"><h2>your filters</h2></div>
+			<div class="banner"><h2><a href='index.html'>Filter Map Tool</a></h2></div>
+			<div id='zone-school-button'><span class='btn-text'>schools</span></div>
 		</div>
 
 		<!-- ======= ======= ======= content ======= ======= ======= -->
 		<div class="row content">
 
-			<!-- ======= filters ======= -->
+			<!-- ======= map ======= -->
 			<div class="column col-md-12 mapCol">
-                <div id="popup" class="filter-container">
-                    <table id="filters-table">
-                        <tr id="drag_bar" class="filters-banner">
-                            <td class="title-text" colspan="4">
-								<p id="filter-title">filters</p>
-								<div id='clear-button'><span class='btn-text'>clear</span></div>
-                            </td>
-                        </tr>
-                        <tr class="filter-row">
-                            <td class="filter-label">schools</td>
-							<td><div id="All" class="filter agency active"><a href="#" class="filter-link">all</a></div></td>
-                            <td><div id="District" class="filter agency active"><a href="#" class="filter-link">DCPS</a></div></td>
-                            <td><div id="Charter" class="filter agency active"><a href="#" class="filter-link">PCS</a></div></td>
-                        </tr>
-                        <tr class="filter-row">
-                            <td class="filter-label">levels</td>
-                            <td><div id="High" class="filter levels active"><a href="#" class="filter-link">HS</a></div></td>
-                            <td><div id="Middle" class="filter levels active"><a href="#" class="filter-link">MS</a></div></td>
-                            <td><div id="Elem" class="filter levels active"><a href="#" class="filter-link">ES</a></div></td>
-                        </tr>
-                        <tr class="filter-row">
-                            <td class="filter-label">zones</td>
-                            <td><div id="Ward" class="filter zones active"><a href="#" class="filter-link">W</a></div></td>
-                            <td><div id="FeederHS" class="filter zones active"><a href="#" class="filter-link">HS</a></div></td>
-                            <td><div id="FeederMS" class="filter zones active"><a href="#" class="filter-link">MS</a></div></td>
-                        </tr>
-                        <tr class="filter-row">
-                            <td class="filter-label">spending</td>
-							<td><div id="spendLifetime" class="filter expend active"><a href="#" class="filter-link">total</a></div></td>
-                            <td><div id="spendPast" class="filter expend active"><a href="#" class="filter-link">past</a></div></td>
-                            <td><div id="spendPlanned" class="filter expend active"><a href="#" class="filter-link">future</a></div></td>
-                        </tr>
-                    </table>
-                </div>
 
-				<div id="toolMap-container"></div>
+				<div id="tooltips"></div>
+
+				<!-- <div id="map-container"></div> -->
+				<div id="storyMap-container"></div>
 				<div id='profile-container'></div>
+				<div id='legend-container'></div>
 		        <div id='chart-container'></div>
-
 			</div>
 		</div>
 
@@ -90,7 +62,19 @@
 			$(document).ready(function(){
 			    console.log('jQuery loaded');
 			    console.log('document ready');
-				var fs = initApp("toolMap");
+				var fs = initApp("storyMap");
+
+				// fs(null, null, null, null, "noSchools");			// show map with Wards but no schools
+				// fs(null, null, null, null, "storyMap");				// show map with Wards and all schools
+			    // fs("District", null, null, "FeederMS", "storyMap");			// show map with MSfeeders and District schools only (no charters)
+			    // fs("District", "MS", null, null, "storyMap");
+			    // fs("District", "ES", "spendPast", "Ward", "storyMap");
+			    fs("District", "ES", "spendLifetime", "FeederMS", "storyMap");
+				// fs("Charter", "ES", "spendLifetime", "FeederMS", "storyMap");
+			    // fs("District", "ES", "spendPast", "FeederHS", "storyMap");
+			    // fs("District", "MS", "spendPast", "Ward", "storyMap");
+			    // fs("Charter", "MS", "spendPast", "Ward", "storyMap");
+
 			});
 		</script>
 

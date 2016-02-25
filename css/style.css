@@ -53,29 +53,27 @@ hr {
     color: black;
 }
 
-/* ======= filters ======= */
-.banner {
-    height: 40px;
-    padding: 0 20px 0 0;
-    border: solid 2px #eee;
-}
-#filters-title {
+/* ======= filter selections ======= */
+#filters-selections {
+    top: 60px;
     width: 60%;
+    height: 36px;
     float: left;
+    padding-right: 20px;
     background-color: darkslateblue;
 }
-#filters-title > h2 {
+#filters-selections > h2 {
     display: block;
-    margin: 10px;
+    margin: 10px 0;
     width: 100%;
     font-size: 16px;
     font-style: italic;
     text-align: right;
     color: gray;
 }
-#filters-title > h2.filterList {
+#filters-selections > h2.filterList {
     display: block;
-    margin: 10px;
+    margin: 10px 20px 10px 0;
     width: 100%;
     font-size: 16px;
     text-align: right;
@@ -85,6 +83,186 @@ hr {
     font-style: normal;
     color: red;
 }
+
+/* ======= filters ======= */
+#popup {
+    width: 360px;
+    height: auto;
+    position: absolute;
+    top: 60px;
+    left: 65%;
+    background-color: #fff2e5;
+    box-shadow: 4px 4px 4px #555;
+    border-radius: 6px 6px 2px 2px;
+    z-index:99;
+}
+.filter-container {
+    width: 360px;
+    height: auto;
+    position: absolute;
+    top: 57px;
+    left: 65%;
+    background-color: #white;
+    box-shadow: 4px 4px 4px #555;
+    border-radius: 6px 6px 2px 2px;
+    z-index:99;
+}
+#filters-table {
+    width: 100%;
+    text-align: center;
+    border-collapse: collapse;
+    border: 1px solid firebrick;
+}
+td {
+    border: 1px solid burlywood ;
+}
+.filters-banner {
+    height: 36px;
+    text-align: center;
+    background-color: firebrick;
+}
+#filter-title, #filter-subtitle {
+    margin: 2px 0;
+    color: white;
+}
+#filter-title {
+    display: inline-block;
+    font-size: 16px;
+}
+#clear-button {
+    display: inline-block;
+    height: 22px;
+    width: 70px;
+    left: 90%;
+    margin-left: 60px;
+    border-radius: 2px 2px 2px 2px;
+    background-color: darkviolet;
+    border: solid 2px black;
+    z-index: 99999;
+}
+.btn-text {
+    line-height: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    color: white;
+}
+#clear-button:hover {
+    background-color: orchid ;
+}
+#clear-button:hover > span {
+    /*color: purple;*/
+}
+.filter-row {
+    width: 100%;
+    height: 40px;
+    padding: 2px;
+    /*background-color: #d8daeb;*/
+    background-color: #fff2e5;
+}
+.filter-label {
+    width: 100px;
+    padding-right: 10px;
+    text-align: right;
+}
+.filter {
+    position: relative;
+    width: 50px;
+    height: 30px;
+    margin: auto;
+    padding: 0 4px;
+    text-align: center;
+    border-radius: 25px;
+    background-color: #fdb863;
+}
+.filter-link {
+    text-decoration: none;
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
+    line-height: 30px;
+    margin: 0;
+}
+.active:hover {
+    background-color: #e08214;
+    /*background-color: green;*/
+}
+.active:hover > a {
+    /*color: #d8daeb;*/
+    color: white;
+}
+.selected {
+    background-color: purple;
+}
+.selected > a {
+    /*color: #d8daeb;*/
+    color: white;
+}
+.selected:hover {
+    background-color: #8073ac;
+    /*background-color: purple;*/
+}
+.selected:hover > a {
+    /*color: #d8daeb;*/
+    color: white;
+}
+.deactivated {
+    background-color: #eee;
+}
+.deactivated > a {
+    /*color: #d8daeb;*/
+    color: gray;
+}
+
+
+/* ======= filters ======= */
+/*.filter-container {
+    width: 360px;
+    height: auto;
+    position: absolute;
+    top: 60px;
+    left: 65%;
+    background-color: #white;
+    box-shadow: 4px 4px 4px #555;
+    border-radius: 6px 6px 2px 2px;
+    z-index:99;
+}
+#filters-table {
+    position: relative;
+    width:100%;
+    border: 1px solid black;
+}
+table, th, td {
+   border: 1px solid black;
+}
+.banner {
+    height: 40px;
+    padding: 0 20px 0 0;
+    border: solid 2px #eee;
+}
+.title-text {
+    position: relative;
+    width:100%;
+}
+.filter-label {
+    position: relative;
+    width: 80px;
+    height: 50px;
+}
+.filters {
+    position: relative;
+    width: 100%;
+}
+td > .filter {
+    position: relative;
+    display: block;
+    width: 50px;
+    height: 50px;
+    background-color: green;
+}
+.filter-blank {
+    background-color: green;
+}*/
 
 /* ======= buttons ======= */
 #zone-school-button {
@@ -145,72 +323,15 @@ hr {
     top: 120px;
 }
 
-/* ======= filter window ======= */
-#popup {
-    width: 360px;
-    height: auto;
-    position: absolute;
-    top: 60px;
-    left: 65%;
-    background-color: #fff2e5;
-    box-shadow: 4px 4px 4px #555;
-    border-radius: 6px 6px 2px 2px;
-    z-index:99;
-}
-.title_bar {
-    width: 100%;
-    position: relative;
-    height: 24px;
-    margin 0;
-    padding: 1px 0 16px 0;
-    text-align: center;
-    background-color: firebrick;
-    border-radius: 6px 6px 0 0;
-    cursor:move;
-}
-.title_bar > p {
-    display: inline-block;
-    margin-top: 8px;
-    font-weight: 700;
-	font-size: 16px;
-    color: white;
-}
-#clear-button {
-    /*position: relative;*/
-    display: inline-block;
-    height: 22px;
-    width: 70px;
-    left: 90%;
-    margin-left: 60px;
-    border-radius: 2px 2px 2px 2px;
-    background-color: darkviolet;
-    border: solid 2px black;
-    z-index: 99999;
-}
-.btn-text {
-    line-height: 20px;
-    font-size: 16px;
-    font-weight: bold;
-    text-align: center;
-    color: white;
-}
-#clear-button:hover {
-    background-color: orchid ;
-}
-#clear-button:hover > span {
-    /*color: purple;*/
-}
-
-
 /* ======= navbar ======= */
-.labelText {
+/*.labelText {
     display: inline-block;;
     width: 30%;
 	margin-left: 10px;
 	padding: 0;
     text-align: right;
     color: red;
-}
+}*/
 #main-nav {
     width: 100%;
     float: left;
@@ -335,7 +456,7 @@ hr {
 #search {
     position: relative;
     width: 100%;
-    height: 36px;
+    height: 24px;
 	margin: 0;
 	padding: 0;
     z-index: 99;
@@ -346,7 +467,7 @@ hr {
 #searchWindow {
     display: inline-block;;
     position: relative;
-    width: 60%;
+    width: 75%;
     height: 20px;
     margin-top: 4px;
     left: 2%;
@@ -405,7 +526,7 @@ hr {
 }
 .profile-banner {
     width: 100%;
-    height: 18px;
+    height: 58px;
     text-align: center;
     color: white;
     background-color: firebrick;
@@ -557,9 +678,61 @@ hr {
 	background-color: #ffd9b3;
 }
 
+/* ======= d3 ======= */
+.axis path,
+.axis line {
+    fill: none;
+    stroke: black;
+    shape-rendering: crispEdges;
+}
+.axis text {
+    font-family: sans-serif;
+    font-size: 11px;
+}
+
+/* ======= jquery selectmenu ======= */
+fieldset {
+    border: 0;
+}
+label {
+    display: block;
+    margin: 30px 0 0 0;
+}
+#expendMath {
+    width: 100px;
+    height: 30px;
+    margin-top: 10px;
+}
+.overflow {
+    height: 100px;
+}
+
+/*.filter2 {
+    position: relative;
+    width: 120px;
+    height: 40px;
+    margin: 2px 6px;
+    padding: 0;
+    text-align: center;
+    border-radius: 25px;
+    background-color: red;
+    background-color: #fdb863;
+}
+.filter4 {
+    position: relative;
+    width: 240px;
+    height: 36px;
+    margin: 2px 12px;
+    padding: 0;
+    text-align: center;
+    border-radius: 25px;
+    background-color: red;
+    background-color: #fdb863;
+}*/
+
 
 /* ======= mapLegend ======= */
-#legend-container {
+/*#legend-container {
     display: none;
     height: auto;
     position: absolute;
@@ -610,36 +783,7 @@ hr {
     margin: 5px 5px;
     width: 40px;
     height: 15px;
-}
-
-/* ======= d3 ======= */
-.axis path,
-.axis line {
-    fill: none;
-    stroke: black;
-    shape-rendering: crispEdges;
-}
-.axis text {
-    font-family: sans-serif;
-    font-size: 11px;
-}
-
-/* ======= jquery selectmenu ======= */
-fieldset {
-    border: 0;
-}
-label {
-    display: block;
-    margin: 30px 0 0 0;
-}
-#expendMath {
-    width: 100px;
-    height: 30px;
-    margin-top: 10px;
-}
-.overflow {
-    height: 100px;
-}
+}*/
 
 /* ======= tooltips ======= */
 /*#tooltips {
