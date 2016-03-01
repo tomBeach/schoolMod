@@ -558,10 +558,7 @@ function makeRankChart(zonesCollectionObj, schoolsCollectionObj, displayObj, zon
         console.log("updateChartStyle");
 
         if (displayObj.displayMode == "storyMap") {
-            $("#chart-container").css("top", "52%");
-            $("#chart-container").css("left", "5%");
-            $("#chart-container").css("width", "160px");
-            $("#chart-container").css("height", "200px");
+          // Do nothing
         } else {
             $("#chart-container").css("top", "42%");
             $("#chart-container").css("left", "65%");
