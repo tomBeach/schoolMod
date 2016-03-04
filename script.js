@@ -324,10 +324,15 @@ function initApp(presetMode) {
                     clearZoneAggregator(zonesCollectionObj);
                     if (whichFilter == "All") {
                         setMenuState(displayObj, self.agencyMenu, ["S", "A", "A"]);
+                        setMenuState(displayObj, self.zonesMenu, ["A", "A", "A"]);
                     } else if (whichFilter == "District") {
                         setMenuState(displayObj, self.agencyMenu, ["A", "S", "A"]);
                         setMenuState(displayObj, self.zonesMenu, ["A", "A", "A"]);
                     } else if (whichFilter == "Charter") {
+                        self.dataFilters.zones = "Ward";
+                        zonesCollectionObj.zoneA = "Ward";
+                        zonesCollectionObj.zoneGeojson_AB = null;
+                        zonesCollectionObj.aggregatorArray = [];
                         setMenuState(displayObj, self.agencyMenu, ["A", "A", "S"]);
                         setMenuState(displayObj, self.zonesMenu, ["S", "D", "D"]);
                     }
