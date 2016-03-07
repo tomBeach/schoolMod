@@ -7,7 +7,7 @@ As described on their website, the [21st Century School Fund](http://www.21csf.o
 At the request of 21CSF clients, Google Maps was chosen for the regional mapping display, and data was layered onto the map via functions specialized for geographic (polygon) and school (math) processing.  Geographic data was available thanks to the [District of Columbia Open Data](http://opendata.dc.gov/) website, and was converted to geojson for local file storage and access.  School data was compiled by 21CSF and packaged into local csv files.  
 
 #### Design
-The website uses client-side javascript, jquery, jquery widgets and d3 to handle user interaction and data processing prior to mapping.  
+The website uses client-side javascript, jquery, jquery widgets and d3 to handle user interaction, data processing and graphic display in addition to mapping.  
 
 ######Display Object
 The dislayObj properties and methods manage the basic structure and functionality of dynamically-generated filter menus, labels and states.  In early stages of the project, some uncertainty about which filters would be used and how they would interact suggested this dynamic approach, so that the javascript code could accomodate design changes.  As the filter choices solidified, most of the menu was "hard-coded" into html, with display and event processing handled by css and javascript.  Also, selection of some filters required dynamic modification of the menu.  For example, selecting "Middle School Feeder Zones" requires deactivating High School and Middle School level options, since only elementary schools "feed" into middle schools.
