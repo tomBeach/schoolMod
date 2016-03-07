@@ -1,0 +1,4 @@
+# schoolMod
+As described on their website, the 21st Century School Fund "is dedicated to building the public will and capacity to modernize public school facilities so they support high quality education and community revitalization."  With big decisions pending on proposed new investments for DC public schools, 21CSF was anxious to develop a tool that could enable decision-makers and stake-holders to understand the complexities of previous and proposed spending on school facilities.  The idea envisioned filters that would allow comparison of spending by zone (Ward or "feeder" regions), level (elementary, middle, high school) and/or agency (district public schools or charter public schools).  The tool would also allow inspection of data on any specific school, and would have a search function for finding school data.
+
+
